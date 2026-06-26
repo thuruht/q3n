@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Q3N Manager
+Exec=q3n
+Icon=q3n
+Comment=Browse and edit Q3N quote collections
+Categories=Office;Database;TextTools;
+Terminal=false
+MimeType=application/x-q3n;
