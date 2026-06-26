@@ -7,6 +7,7 @@ tools/q3n          CLI entry point
 bin/q3n-gui        GUI launcher
 core/              Python library (no GUI deps)
   q3n.py            Q3NEntry, parse, serialize, export, import
+  fortune.py        Fortune cookie renderer and ASCII art
   __init__.py
 gui/               PySide6 GUI application
   __main__.py       Installed entry point
@@ -37,7 +38,7 @@ Q3NEntry(uri, scheme, path, quote, tag=None)
 
 ### parse(text) → list[Q3NEntry]
 
-Uses `re.MULTILINE | re.DOTALL` to match the pattern:
+Line-by-line parser (no backtracking). Matches opening lines with a compiled regex (`Q3N_START`), collects content until a closing `\\\` line (`Q3N_END`). Entries without a closing marker are silently dropped.
 
 ```
 /// <uri> [/// <tag>:]
@@ -53,7 +54,7 @@ Reconstructs Q3N text from entry objects.
 
 ```
 export_file(entries, path, fmt='q3n')
-  fmt: q3n | json | md | html | txt | index
+  fmt: q3n | json | md | html | txt | index | fortune
 ```
 
 Each format has a dedicated function:
@@ -62,6 +63,7 @@ Each format has a dedicated function:
 - `export_html` — self-contained HTML page
 - `export_plaintext` — flat text
 - `generate_index` — markdown table with tag summaries
+- `export_fortune` (in `core/fortune.py`) — Unix fortune/strfile-compatible format
 
 ### Detection & discovery
 
@@ -76,6 +78,7 @@ Argparse-based dispatcher. Each subcommand is a `cmd_*` function returning an ex
 
 - `help [command]` — delegates to man page or prints command list
 - `tutorial` — interactive text tutorial with sections and prompts
+- `fortune` — display random entry as ASCII art fortune cookie
 - `show`, `list`, `create`, `edit`, `search`, `stats`, `export`, `import`, `index`, `init`
 
 ## GUI (`gui/`)

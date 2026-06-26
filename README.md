@@ -48,6 +48,7 @@ Multiple paragraphs are fine.
 | `import SRC DEST` | Import entries |
 | `index [DIR]` | Generate markdown index |
 | `init FILE` | Create empty Q3N file |
+| `fortune [DIR]` | Display random quote as fortune |
 | `tutorial` | Interactive tutorial |
 | `help [CMD]` | Show help or man page |
 
@@ -57,11 +58,11 @@ Run `./bin/q3n-gui` to launch the Q3N Manager, a PySide6-based graphical browser
 
 ## URI schemes
 
-`https://`, `http://`, `file://`, `isbn://`, `doi://`, `arxiv://`, `yt://`, `q3n://`
+`https://`, `http://`, `file://`, `isbn://`, `doi://`, `arxiv://`, `pubmed://`, `yt://`, `spotify://`, `orcid://`, `q3n://`
 
 ## Export formats
 
-- Q3N, JSON, Markdown, HTML, Plain text, Markdown index
+- Q3N, JSON, Markdown, HTML, Plain text, Markdown index, Fortune
 
 ## License
 

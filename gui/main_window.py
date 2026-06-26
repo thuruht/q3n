@@ -128,6 +128,7 @@ from gui.entry_wizard import EntryWizard
 SCHEME_DISPLAY_ICONS = {
     'https': '🌐', 'http': '🌐', 'file': '📄',
     'isbn': '📚', 'doi': '📖', 'arxiv': '📋',
+    'pubmed': '🔬', 'orcid': '👤', 'spotify': '🎵',
     'q3n': '👤', 'yt': '🎬', 'youtube': '🎬',
 }
 
@@ -217,6 +218,7 @@ class MainWindow(QMainWindow):
         self.setStyleSheet(QSS)
         self._file_path = None
         self._modified = False
+        self._all_entries = []  # unfiltered master list
         self._setup_ui()
         self._setup_menu()
         self._setup_toolbar()
@@ -328,33 +330,27 @@ class MainWindow(QMainWindow):
             toolbar.addAction(action)
 
     def _load_entries(self, entries):
-        self._model.set_entries(entries)
-        self._tag_filter.set_tags(entries)
+        self._all_entries = list(entries)
+        self._model.set_entries(self._all_entries)
+        self._tag_filter.set_tags(self._all_entries)
         self._detail_view.clear()
         self._status.showMessage(f"{len(entries)} entries loaded")
 
     def _apply_filter(self):
         search = self._search_input.text().lower()
         tag_filter = self._tag_filter.selected_tag()
-        all_entries = self._model.entries()
 
         def matches(e):
             if tag_filter and e.tag != tag_filter:
                 return False
-            if search:
-                if search not in e.quote.lower() and search not in e.uri.lower():
-                    return False
+            if search and search not in e.quote.lower() and search not in e.uri.lower():
+                return False
             return True
 
-        filtered = [e for e in all_entries if matches(e)]
-        old_sel = self._list_view.currentIndex().row()
+        filtered = [e for e in self._all_entries if matches(e)]
         self._model.set_entries(filtered)
         self._detail_view.clear()
-        if old_sel >= 0 and old_sel < len(filtered):
-            idx = self._model.index(old_sel)
-            self._list_view.selectionModel().setCurrentIndex(
-                idx, self._list_view.selectionModel().ClearAndSelect)
-        self._status.showMessage(f"{len(filtered)} of {len(all_entries)} entries")
+        self._status.showMessage(f"{len(filtered)} of {len(self._all_entries)} entries")
 
     def _on_selection(self, current, previous):
         if not current.isValid():
@@ -366,6 +362,14 @@ class MainWindow(QMainWindow):
 
     def _on_entry_changed(self, row, entry):
         self._model.update_entry(row, entry)
+        # Keep master list in sync — find matching entry by identity
+        visible = self._model.entries()
+        if row < len(visible):
+            updated = visible[row]
+            for i, e in enumerate(self._all_entries):
+                if e is updated or (e.uri == updated.uri and e.quote == updated.quote):
+                    self._all_entries[i] = entry
+                    break
         self._modified = True
         self._status.showMessage("Entry updated")
 
@@ -373,8 +377,9 @@ class MainWindow(QMainWindow):
         wizard = EntryWizard(self)
         if wizard.exec():
             entry = wizard.get_entry()
+            self._all_entries.append(entry)
             self._model.add_entry(entry)
-            self._tag_filter.set_tags(self._model.entries())
+            self._tag_filter.set_tags(self._all_entries)
             self._modified = True
             last = self._model.index(self._model.rowCount() - 1)
             self._list_view.selectionModel().setCurrentIndex(
@@ -395,9 +400,12 @@ class MainWindow(QMainWindow):
             f'Delete this entry?\n"{preview}..."',
             QMessageBox.Yes | QMessageBox.No)
         if confirm == QMessageBox.Yes:
+            removed = self._model.entry_at(row)
             self._model.remove_entry(row)
+            if removed in self._all_entries:
+                self._all_entries.remove(removed)
             self._detail_view.clear()
-            self._tag_filter.set_tags(self._model.entries())
+            self._tag_filter.set_tags(self._all_entries)
             self._modified = True
             self._status.showMessage("Entry deleted")
 
@@ -446,10 +454,10 @@ class MainWindow(QMainWindow):
 
     def _do_save(self, path):
         try:
-            serialize_file(self._model.entries(), path)
+            serialize_file(self._all_entries, path)
             self._modified = False
             self.setWindowTitle(f"Q3N Manager - {path.name}")
-            self._status.showMessage(f"Saved {len(self._model.entries())} entries to {path}")
+            self._status.showMessage(f"Saved {len(self._all_entries)} entries to {path}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save file:\n{e}")
 
@@ -474,8 +482,9 @@ class MainWindow(QMainWindow):
         try:
             entries = parse_file(path)
             for e in entries:
+                self._all_entries.append(e)
                 self._model.add_entry(e)
-            self._tag_filter.set_tags(self._model.entries())
+            self._tag_filter.set_tags(self._all_entries)
             self._modified = True
             self._status.showMessage(f"Imported {len(entries)} entries from {path}")
         except Exception as e:
@@ -489,8 +498,9 @@ class MainWindow(QMainWindow):
         try:
             entries = import_json(path)
             for e in entries:
+                self._all_entries.append(e)
                 self._model.add_entry(e)
-            self._tag_filter.set_tags(self._model.entries())
+            self._tag_filter.set_tags(self._all_entries)
             self._modified = True
             self._status.showMessage(f"Imported {len(entries)} entries from JSON")
         except Exception as e:
@@ -521,15 +531,16 @@ class MainWindow(QMainWindow):
                 path=url or str(Path(path).resolve()),
                 quote=quote,
                 tag='imported')
+            self._all_entries.append(entry)
             self._model.add_entry(entry)
-            self._tag_filter.set_tags(self._model.entries())
+            self._tag_filter.set_tags(self._all_entries)
             self._modified = True
             self._status.showMessage("Imported plain text")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Import failed:\n{e}")
 
     def _export(self, fmt):
-        entries = self._model.entries()
+        entries = self._all_entries
         if not entries:
             QMessageBox.warning(self, "Export", "No entries to export.")
             return
@@ -550,7 +561,7 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Error", f"Export failed:\n{e}")
 
     def _preview_json(self):
-        entries = self._model.entries()
+        entries = self._all_entries
         if not entries:
             QMessageBox.warning(self, "Preview", "No entries.")
             return
@@ -558,7 +569,7 @@ class MainWindow(QMainWindow):
         PreviewDialog("JSON Preview", content, self).exec()
 
     def _preview_md(self):
-        entries = self._model.entries()
+        entries = self._all_entries
         if not entries:
             QMessageBox.warning(self, "Preview", "No entries.")
             return
@@ -566,7 +577,7 @@ class MainWindow(QMainWindow):
         PreviewDialog("Markdown Preview", content, self).exec()
 
     def _preview_index(self):
-        entries = self._model.entries()
+        entries = self._all_entries
         if not entries:
             QMessageBox.warning(self, "Preview", "No entries.")
             return
@@ -574,7 +585,7 @@ class MainWindow(QMainWindow):
         PreviewDialog("Index Preview", content, self).exec()
 
     def _generate_index_file(self):
-        entries = self._model.entries()
+        entries = self._all_entries
         if not entries:
             QMessageBox.warning(self, "Index", "No entries to index.")
             return
