@@ -1,0 +1,46 @@
+{
+  "name": "q3n",
+  "displayName": "Q3N",
+  "description": "Syntax highlighting and language support for Q3N (Quote Triple-Slash Notation) files",
+  "version": "0.1.0",
+  "publisher": "q3n-project",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "q3n",
+        "aliases": [
+          "Q3N",
+          "q3n",
+          "Quote Triple-Slash Notation"
+        ],
+        "extensions": [
+          ".q3n",
+          ".q3nt",
+          ".quotation",
+          ".quotes"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "q3n",
+        "scopeName": "source.q3n",
+        "path": "./syntaxes/q3n.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "q3n",
+        "path": "./snippets/q3n.json"
+      }
+    ]
+  }
+}

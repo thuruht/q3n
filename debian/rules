@@ -1,0 +1,21 @@
+#!/usr/bin/make -f
+export PYBUILD_NAME = q3n
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+override_dh_auto_clean:
+	dh_auto_clean || true
+	rm -rf *.egg-info build dist
+
+override_dh_auto_install:
+	dh_auto_install
+	install -D -m 755 tools/q3n $(CURDIR)/debian/q3n/usr/bin/q3n
+	install -D -m 755 bin/q3n-gui $(CURDIR)/debian/q3n/usr/bin/q3n-gui
+	install -D -m 644 q3n.desktop $(CURDIR)/debian/q3n/usr/share/applications/q3n.desktop
+
+override_dh_auto_test:
+	python3 debian/tests/test_core.py
+
+override_dh_strip:
+	true

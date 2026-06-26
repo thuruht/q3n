@@ -1,0 +1,996 @@
+#!/usr/bin/env python3
+"""
+q3n — CLI for Q3N (Quote Triple-Slash Notation) files.
+
+Usage:
+    q3n show <file> [n]       Display entries (with optional entry number)
+    q3n list [dir]            List entries across files
+    q3n create <file>         Interactive entry creation (wizard)
+    q3n edit <file> [n]       Edit an entry interactively
+    q3n search <pattern> [dir] Search entry text (regex)
+    q3n stats [dir]           Show collection statistics
+    q3n export <file> -o <path> -f <fmt>  Export (txt|json|md|q3n)
+    q3n import <src> <dest>   Import entries from another file
+    q3n index [dir]           Generate a markdown index
+    q3n init <file>           Create a new empty Q3N file
+"""
+import sys
+import os
+import json
+import re as re_module
+from pathlib import Path
+from datetime import datetime
+
+# Allow running from repo or installed system-wide
+_repo_root = Path(__file__).resolve().parent.parent
+if (_repo_root / 'core' / 'q3n.py').exists():
+    sys.path.insert(0, str(_repo_root))
+
+from core.q3n import (Q3NEntry, parse_file, parse, serialize_file,
+                      export_file, export_json, export_markdown,
+                      export_plaintext, generate_index, import_json,
+                      list_entries, detect)
+from core.fortune import display_fortune, export_fortune
+
+USE_COLOR = sys.stdout.isatty()
+
+# ── ANSI helpers ──────────────────────────────────────────────────────
+
+def _c(code, text):
+    return f'\033[{code}m{text}\033[0m' if USE_COLOR else text
+
+bold     = lambda t: _c('1', t)
+dim      = lambda t: _c('2', t)
+italic   = lambda t: _c('3', t)
+cyan     = lambda t: _c('36', t)
+green    = lambda t: _c('32', t)
+yellow   = lambda t: _c('33', t)
+red      = lambda t: _c('31', t)
+blue     = lambda t: _c('34', t)
+magenta  = lambda t: _c('35', t)
+white_bg = lambda t: _c('47;30', t)
+
+# ── Unicode / symbols ─────────────────────────────────────────────────
+
+SYM = {
+    'bullet': '●',
+    'entry': '◆',
+    'tag': '◈',
+    'uri': '↗',
+    'arrow': '→',
+    'sep': '│',
+    'corner': '└',
+    'tee': '├',
+    'line': '─',
+    'hdr': '━',
+    'check': '✓',
+    'cross': '✗',
+    'star': '★',
+    'empty': '○',
+}
+
+SCHEME_COLORS = {
+    'https': cyan,
+    'http': cyan,
+    'file': green,
+    'isbn': magenta,
+    'doi': blue,
+    'arxiv': blue,
+    'pubmed': blue,
+    'orcid': green,
+    'q3n': yellow,
+    'yt': red,
+    'youtube': red,
+    'spotify': green,
+}
+
+SCHEME_ICONS = {
+    'https': '🌐',
+    'http': '🌐',
+    'file': '📄',
+    'isbn': '📚',
+    'doi': '📖',
+    'arxiv': '📋',
+    'pubmed': '🔬',
+    'orcid': '👤',
+    'q3n': '👤',
+    'yt': '🎬',
+    'youtube': '🎬',
+    'spotify': '🎵',
+}
+
+
+def scheme_style(entry):
+    c = SCHEME_COLORS.get(entry.scheme, bold)
+    return c(entry.uri)
+
+
+def scheme_icon(entry):
+    return SCHEME_ICONS.get(entry.scheme, '🔗')
+
+
+def truncate(text, n=60):
+    text = text.replace('\n', ' ')
+    return text[:n] + '…' if len(text) > n else text
+
+
+def plural(n, word):
+    return f'{n} {word}{"s" if n != 1 else ""}'
+
+
+# ── Entry rendering ───────────────────────────────────────────────────
+
+def render_entry(entry, num=None, indent=0):
+    """Render a single entry with Q3N source formatting."""
+    p = '  ' * indent
+    lines = []
+
+    # Header line
+    num_str = f'{bold(f"#{num}")} ' if num else ''
+    tag_str = f' {dim(yellow(f"[{entry.tag}]"))}' if entry.tag else ''
+    icon = scheme_icon(entry)
+    uri_colored = scheme_style(entry)
+    lines.append(f'{p}{num_str}{icon} {uri_colored}{tag_str}')
+
+    # Info line
+    info = []
+    if entry.scheme in ('https', 'http'):
+        parsed = entry.as_dict()
+        if 'domain' in parsed:
+            info.append(dim(f'domain: {parsed["domain"]}'))
+    if entry.quote:
+        word_count = len(entry.quote.split())
+        info.append(dim(f'{word_count} words'))
+    if info:
+        lines.append(f'{p}  {dim("·".join(info))}')
+
+    # Divider
+    lines.append(f'{p}  {dim("─" * 40)}')
+
+    # Quote body
+    for line in entry.quote.split('\n'):
+        lines.append(f'{p}  {line}')
+
+    return '\n'.join(lines)
+
+
+def render_q3n_source(entry):
+    """Render the entry as highlighted Q3N source."""
+    tag_part = f' /// {entry.tag}:' if entry.tag else ''
+    header = f'{cyan("///")} {bold(entry.uri)}{cyan(tag_part)}'
+    body = entry.quote
+    footer = cyan("\\\\\\")
+    return f'{header}\n{body}\n{footer}'
+
+
+# ── Commands ──────────────────────────────────────────────────────────
+
+def cmd_show(args):
+    entries = parse_file(args.file)
+    if not entries:
+        print(f'{red(SYM["cross"])} No entries found in {args.file}')
+        return 1
+
+    if args.json:
+        print(export_json(entries))
+        return 0
+
+    if args.number is not None:
+        if args.number < 1 or args.number > len(entries):
+            print(f'{red(SYM["cross"])} Entry {args.number} not found. '
+                  f'Have {len(entries)} entr{"y" if len(entries)==1 else "ies"}.')
+            return 1
+        indices = [args.number - 1]
+    else:
+        indices = range(len(entries))
+
+    # Show Q3N source view for single entry, pretty view for multiple
+    if args.number:
+        print(render_entry(entries[indices[0]], indices[0] + 1))
+        print()
+        print(dim(render_q3n_source(entries[indices[0]])))
+    else:
+        for i in indices:
+            print(render_entry(entries[i], i + 1))
+            print()
+
+    meta = f'{green(SYM["check"])} {plural(len(entries), "entry")}'
+    if args.number:
+        meta += f'  (showing #{args.number})'
+    print(dim(meta))
+    return 0
+
+
+def cmd_list(args):
+    target = Path(args.directory)
+    if target.is_file():
+        entries = parse_file(target)
+        results = [(target, entries)] if entries else []
+    else:
+        results = list_entries(args.directory)
+
+    if not results:
+        print(f'{yellow(SYM["empty"])} No Q3N files found in {args.directory}')
+        return 1
+
+    if args.json:
+        all_entries = []
+        for path, entries in results:
+            for e in entries:
+                d = e.as_dict()
+                d['file'] = str(path)
+                all_entries.append(d)
+        print(json.dumps(all_entries, indent=2))
+        return 0
+
+    total = 0
+    for path, entries in results:
+        try:
+            rel = path.relative_to(target.resolve()) if target.is_dir() else path
+        except ValueError:
+            rel = path
+        print(f'\n  {bold(rel)}')
+        print(f'  {dim(SYM["hdr"] * 40)}')
+        for e in entries:
+            total += 1
+            preview = truncate(e.quote, 70)
+            tag_str = f' {dim(yellow(f"[{e.tag}]"))}' if e.tag else ''
+            icon = scheme_icon(e)
+            first_line = preview.split('\n')[0]
+            print(f'    {SYM["entry"]} {icon} {scheme_style(e)}{tag_str}')
+            print(f'      {dim(first_line)}')
+        print()
+
+    print(f'  {green(SYM["check"])} {plural(total, "entry")} '
+          f'in {plural(len(results), "file")}')
+    return 0
+
+
+def cmd_create(args):
+    filepath = Path(args.file)
+    if filepath.exists():
+        existing = parse_file(filepath)
+        print(dim(f'  Appending to {filepath} ({len(existing)} existing entries)\n'))
+    else:
+        existing = []
+        print(f'\n  {bold("Creating new Q3N file")} {cyan(str(filepath))}\n')
+
+    # ── Step 1: Scheme picker ──
+    schemes = [
+        ('https://', 'Web page'),
+        ('http://', 'Web page'),
+        ('file://', 'Local file'),
+        ('isbn://', 'Book'),
+        ('doi://', 'Academic paper'),
+        ('arxiv://', 'arXiv paper'),
+        ('yt://', 'YouTube video'),
+        ('q3n://', 'Person / contact'),
+        ('custom', 'Custom URI'),
+    ]
+    print(f'  {bold("Step 1:")} Choose source type')
+    for i, (s, desc) in enumerate(schemes):
+        print(f'    {cyan(f"{i+1:2}.")} {s:{12}} {dim(desc)}')
+    while True:
+        raw = input(f'\n  {cyan(SYM["arrow"])} Type: ').strip()
+        try:
+            idx = int(raw) - 1
+            if 0 <= idx < len(schemes):
+                scheme_prefix, _ = schemes[idx]
+                break
+        except ValueError:
+            if raw in [s for s, _ in schemes]:
+                scheme_prefix = raw
+                break
+        print(f'  {red("Invalid choice")}')
+
+    # ── Step 2: URI ──
+    print(f'\n  {bold("Step 2:")} Enter the source identifier')
+    uri_help = {
+        'https://': 'Full URL, e.g. https://example.com/article',
+        'http://': 'Full URL, e.g. http://example.com/article',
+        'file://': 'File path, e.g. file:///home/user/doc.txt#line=42',
+        'isbn://': 'ISBN;Title;Author;Year, e.g. isbn://978-3-16-148410-0',
+        'doi://': 'DOI identifier, e.g. doi://10.1234/abcd.567',
+        'arxiv://': 'arXiv ID, e.g. arxiv://2305.12345',
+        'yt://': 'YouTube video, e.g. yt://watch?v=dQw4w9WgXcQ',
+        'q3n://': 'Person ref, e.g. q3n://@handle;email;Name',
+        'custom': 'Any URI string',
+    }
+    print(f'    {dim(uri_help.get(scheme_prefix, ""))}')
+    if scheme_prefix != 'custom':
+        print(f'    {dim(f"Prefix: {scheme_prefix}")}')
+    while True:
+        uri = input(f'  {cyan(SYM["arrow"])} URI: ').strip()
+        if not uri:
+            print(f'  {red("URI is required")}')
+            continue
+        if scheme_prefix != 'custom' and not uri.startswith(scheme_prefix):
+            uri = scheme_prefix + uri
+        break
+
+    # ── Step 3: Tag ──
+    print(f'\n  {bold("Step 3:")} Add a tag (optional — press Enter to skip)')
+    tag_presets = ['cite/article', 'cite/book', 'cite/interview',
+                   'cite/speech', 'note/research', 'note/idea', 'note/summary']
+    cols = 3
+    for i, t in enumerate(tag_presets):
+        print(f'    {cyan(f"{i+1:2}.")} {t:{18}}', end='')
+        if (i + 1) % cols == 0:
+            print()
+    if len(tag_presets) % cols:
+        print()
+    tag_raw = input(f'  {cyan(SYM["arrow"])} Tag (number or text): ').strip()
+    tag = None
+    if tag_raw:
+        try:
+            idx = int(tag_raw) - 1
+            if 0 <= idx < len(tag_presets):
+                tag = tag_presets[idx]
+        except ValueError:
+            tag = tag_raw
+
+    # ── Step 4: Quote content ──
+    print(f'\n  {bold("Step 4:")} Paste the quoted text')
+    print(f'    {dim("End with Ctrl+D on an empty line")}')
+    print(f'  {cyan(SYM["hdr"] * 40)}')
+    quote_lines = []
+    try:
+        while True:
+            line = input()
+            quote_lines.append(line)
+    except EOFError:
+        pass
+    quote = '\n'.join(quote_lines).strip()
+    if not quote:
+        print(f'  {red("Quote text is required")}')
+        return 1
+    print(f'  {cyan(SYM["hdr"] * 40)}')
+
+    # ── Summary ──
+    scheme_name = scheme_prefix.rstrip('://') if scheme_prefix != 'custom' else 'custom'
+    path_val = uri.split('://', 1)[1] if '://' in uri else uri
+    entry = Q3NEntry(uri, scheme_name, path_val, quote, tag)
+
+    print(f'\n  {bold("Summary:")}')
+    print(f'    {scheme_icon(entry)} {scheme_style(entry)}')
+    if tag:
+        print(f'    {yellow(SYM["tag"])} {tag}')
+    print(f'    {dim(SYM["sep"])} {plural(len(quote.split()), "word")}')
+    print(f'    {dim(SYM["sep"])} {plural(len(quote.splitlines()), "line")}')
+
+    print()
+    confirm = input(f'  {cyan(SYM["arrow"])} Save entry? (Y/n): ').strip().lower()
+    if confirm == 'n':
+        print(f'  {yellow("Cancelled")}')
+        return 0
+
+    existing.append(entry)
+    serialize_file(existing, filepath)
+    print(f'  {green(SYM["check"])} Entry saved to {cyan(str(filepath))}')
+    return 0
+
+
+def cmd_edit(args):
+    entries = parse_file(args.file)
+    if not entries:
+        print(f'{red(SYM["cross"])} No entries found in {args.file}')
+        return 1
+
+    if args.number is None:
+        for i, e in enumerate(entries):
+            icon = scheme_icon(e)
+            preview = truncate(e.quote, 50)
+            tag_str = f' {dim(yellow(f"[{e.tag}]"))}' if e.tag else ''
+            print(f'    {cyan(f"{i+1:3}.")} {icon} {preview}{tag_str}')
+        print()
+        raw = input(f'  {cyan(SYM["arrow"])} Entry to edit: ').strip()
+        try:
+            args.number = int(raw)
+        except (ValueError, EOFError):
+            return 1
+
+    if args.number < 1 or args.number > len(entries):
+        print(f'{red(SYM["cross"])} Entry {args.number} not found')
+        return 1
+
+    idx = args.number - 1
+    e = entries[idx]
+
+    print(f'\n  {bold(f"Editing #{idx+1}")} {scheme_icon(e)} {scheme_style(e)}')
+    if e.tag:
+        print(f'    {dim("tag:")} {yellow(e.tag)}')
+
+    print(f'\n  {bold("URI")}  [{dim("current: " + e.uri)}]')
+    uri = input(f'  {cyan(SYM["arrow"])} New URI (Enter to keep): ').strip() or e.uri
+
+    tag_default = e.tag or ''
+    print(f'\n  {bold("Tag")}  [{dim("current: " + (tag_default or "(none)"))}]')
+    tag = input(f'  {cyan(SYM["arrow"])} New tag (Enter to keep): ').strip() or tag_default
+    tag = tag or None
+
+    print(f'\n  {bold("Quote")}  [{dim(plural(len(e.quote.split()), "word") + " currently")}]')
+    print(f'    {dim("Current text:")}')
+    for line in e.quote.split('\n')[:5]:
+        print(f'    {dim("│ " + line)}')
+    if len(e.quote.split('\n')) > 5:
+        print(f'    {dim(f"│ … ({len(e.quote.splitlines())-5} more lines)")}')
+    replace = input(f'\n  {cyan(SYM["arrow"])} Replace quote? (y/N): ').strip().lower()
+
+    if replace == 'y':
+        print(f'  {dim("Enter new text, end with Ctrl+D on empty line:")}')
+        quote_lines = []
+        try:
+            while True:
+                line = input()
+                quote_lines.append(line)
+        except EOFError:
+            pass
+        quote = '\n'.join(quote_lines).strip() or e.quote
+    else:
+        quote = e.quote
+
+    scheme = uri.split('://')[0] if '://' in uri else ''
+    path_val = uri.split('://', 1)[1] if '://' in uri else uri
+    entries[idx] = Q3NEntry(uri, scheme, path_val, quote, tag)
+    serialize_file(entries, args.file)
+    print(f'  {green(SYM["check"])} Entry #{idx+1} updated')
+    return 0
+
+
+def cmd_search(args):
+    target = Path(args.directory)
+    if target.is_file():
+        entries = parse_file(target)
+        results = [(target, entries)] if entries else []
+    else:
+        results = list_entries(target)
+
+    if not results:
+        print(f'{yellow(SYM["empty"])} No Q3N files found')
+        return 1
+
+    pat = re_module.compile(args.pattern, re_module.IGNORECASE)
+    found = 0
+
+    for path, entries in results:
+        rel = path.relative_to(target.resolve()) if target.is_dir() else path
+        for e in entries:
+            matches = []
+            for m in pat.finditer(e.quote):
+                start = max(0, m.start() - 30)
+                end = min(len(e.quote), m.end() + 50)
+                ctx = e.quote[start:end].replace('\n', ' ')
+                if USE_COLOR:
+                    ctx = (ctx[:m.start() - start] +
+                           white_bg(ctx[m.start() - start:m.end() - start]) +
+                           ctx[m.end() - start:])
+                matches.append(ctx)
+            if pat.search(e.uri):
+                matches.append(bold(e.uri))
+            if matches:
+                found += 1
+                tag_str = f' {dim(yellow(f"[{e.tag}]"))}' if e.tag else ''
+                icon = scheme_icon(e)
+                print(f'\n  {bold(str(rel))}  {icon} {scheme_style(e)}{tag_str}')
+                for ctx in matches[:3]:
+                    print(f'    {dim("…")}{ctx}{dim("…")}')
+
+    if not found:
+        print(f'  {yellow(SYM["empty"])} No matches for {bold(args.pattern)}')
+        return 1
+
+    print(f'\n  {green(SYM["check"])} {plural(found, "match")} for {bold(args.pattern)}')
+    return 0
+
+
+def cmd_stats(args):
+    target = Path(args.directory)
+    if target.is_file():
+        entries = parse_file(target)
+        results = [(target, entries)] if entries else []
+    else:
+        results = list_entries(target)
+
+    if not results:
+        print(f'{yellow(SYM["empty"])} No Q3N files found')
+        return 1
+
+    if args.json:
+        data = {"files": [], "total_entries": 0, "total_chars": 0}
+        for path, entries in results:
+            file_data = {"file": str(path),
+                         "entries": [e.as_dict() for e in entries]}
+            data["files"].append(file_data)
+            data["total_entries"] += len(entries)
+            data["total_chars"] += sum(len(e.quote) for e in entries)
+        tags, domains = {}, {}
+        for _, entries in results:
+            for e in entries:
+                if e.tag:
+                    tags[e.tag] = tags.get(e.tag, 0) + 1
+                if e.scheme in ('https', 'http') and e.as_dict().get('domain'):
+                    d = e.as_dict()['domain']
+                    domains[d] = domains.get(d, 0) + 1
+        data["tags"] = tags
+        data["domains"] = domains
+        print(json.dumps(data, indent=2))
+        return 0
+
+    total_entries = 0
+    total_chars = 0
+    tags = {}
+    domains = {}
+    word_count = 0
+
+    for path, entries in results:
+        total_entries += len(entries)
+        for e in entries:
+            total_chars += len(e.quote)
+            word_count += len(e.quote.split())
+            if e.tag:
+                tags[e.tag] = tags.get(e.tag, 0) + 1
+            if e.scheme in ('https', 'http') and e.as_dict().get('domain'):
+                d = e.as_dict()['domain']
+                domains[d] = domains.get(d, 0) + 1
+
+    print(f'\n  {bold("Collection Overview")}')
+    print(f'  {dim(SYM["hdr"] * 30)}')
+    print(f'    {SYM["star"]} {bold("Files")}:     {len(results)}')
+    print(f'    {SYM["entry"]} {bold("Entries")}:  {total_entries}')
+    print(f'    {SYM["bullet"]} {bold("Chars")}:    {total_chars:,}')
+    print(f'    {SYM["bullet"]} {bold("Words")}:   {word_count:,}')
+
+    if tags:
+        print(f'\n  {bold("Tags")}')
+        print(f'  {dim(SYM["hdr"] * 30)}')
+        for t, c in sorted(tags.items(), key=lambda x: -x[1]):
+            bar = green(SYM["line"] * min(c, 20))
+            print(f'    {yellow(t):20} {c:4}  {bar}')
+
+    if domains:
+        print(f'\n  {bold("Domains")}')
+        print(f'  {dim(SYM["hdr"] * 30)}')
+        for d, c in sorted(domains.items(), key=lambda x: -x[1]):
+            bar = cyan(SYM["line"] * min(c, 20))
+            print(f'    {cyan(d):30} {c:4}  {bar}')
+
+    print()
+    return 0
+
+
+def cmd_export(args):
+    entries = parse_file(args.file)
+    if not entries:
+        print(f'{red(SYM["cross"])} No entries to export')
+        return 1
+
+    if args.format == 'json':
+        output = export_json(entries)
+    elif args.format == 'md':
+        output = export_markdown(entries)
+    elif args.format == 'txt':
+        output = export_plaintext(entries)
+    elif args.format == 'q3n':
+        from core.q3n import serialize
+        output = serialize(entries)
+    else:
+        print(f'{red(SYM["cross"])} Unknown format: {args.format}')
+        return 1
+
+    if args.output:
+        Path(args.output).write_text(output, encoding='utf-8')
+        print(f'  {green(SYM["check"])} {plural(len(entries), "entry")} '
+              f'exported → {cyan(args.output)}')
+    else:
+        print(output)
+    return 0
+
+
+def cmd_import(args):
+    src = Path(args.source)
+    if not src.exists():
+        print(f'{red(SYM["cross"])} File not found: {args.source}')
+        return 1
+
+    new_entries = import_json(src) if args.format == 'json' else parse_file(src)
+    if not new_entries:
+        print(f'{red(SYM["cross"])} No entries found in source')
+        return 1
+
+    dest = Path(args.directory)
+    if dest.suffix in ('.q3n', '.q3nt', '.quotation', '.quotes'):
+        existing = parse_file(dest) if dest.exists() else []
+        existing.extend(new_entries)
+        serialize_file(existing, dest)
+        print(f'  {green(SYM["check"])} {plural(len(new_entries), "entry")} '
+              f'merged → {cyan(str(dest))}')
+    else:
+        dest.mkdir(parents=True, exist_ok=True)
+        out_path = dest / f'imported_{src.stem}.q3n'
+        serialize_file(new_entries, out_path)
+        print(f'  {green(SYM["check"])} {plural(len(new_entries), "entry")} '
+              f'imported → {cyan(str(out_path))}')
+    return 0
+
+
+def cmd_index(args):
+    target = Path(args.directory)
+    if target.is_file():
+        entries = parse_file(target)
+    else:
+        results = list_entries(target)
+        entries = [e for _, es in results for e in es]
+
+    if not entries:
+        print(f'{yellow(SYM["empty"])} No entries found')
+        return 1
+
+    idx = generate_index(entries)
+    print(idx)
+    print(f'  {green(SYM["check"])} {plural(len(entries), "entry")} indexed')
+    return 0
+
+
+def cmd_fortune(args):
+    """Display random quotes as fortunes."""
+    import random
+    from pathlib import Path
+
+    target = Path(args.directory)
+    if target.is_file():
+        if not detect(target):
+            print(f'{red(SYM["cross"])} Not a Q3N file: {target}')
+            return 1
+        entries = parse_file(target)
+    else:
+        files_with_entries = list_entries(target)
+        entries = [e for _, es in files_with_entries for e in es]
+
+    if not entries:
+        print(f'{red(SYM["cross"])} No entries found')
+        return 1
+
+    if args.count and args.count > 1:
+        selected = random.sample(entries, min(args.count, len(entries)))
+        for e in selected:
+            print(display_fortune([e], art=args.art, no_art=args.no_art))
+            print()
+    else:
+        print(display_fortune(entries, art=args.art, no_art=args.no_art))
+    return 0
+
+
+def cmd_tutorial(args):
+    """Interactive tutorial for first-time users."""
+    import shutil
+    w = shutil.get_terminal_size().columns
+
+    def section(title):
+        print()
+        print(bold(f'  {title}'))
+        print(f'  {dim(SYM["hdr"] * min(w - 4, 50))}')
+
+    def note(text):
+        for line in text.strip().split('\n'):
+            print(f'    {line}')
+
+    def wait():
+        try:
+            input(f'\n  {cyan(SYM["arrow"])} Press Enter to continue {dim("(or q to quit)")} → ')
+        except EOFError:
+            return False
+        return True
+
+    print()
+    print(f'  {bold("Q3N Tutorial")}  {dim("— getting started with Quote Triple-Slash Notation")}')
+    print(f'  {dim(SYM["hdr"] * min(w - 4, 50))}')
+
+    # ── 1 ──
+    section('1. What is Q3N?')
+    note(r'''
+Q3N is a plain-text file format for storing quotations with their
+source URIs. Each entry wraps quoted content between /// and \\\
+delimiters, with the source URI on the opening line.
+
+Think of it as a lightweight, human-readable citation database
+that lives in normal text files.''')
+    if not wait():
+        return 0
+
+    # ── 2 ──
+    section('2. Q3N in 30 seconds')
+    print()
+    print(f'    {cyan("///")} {bold("https://example.com/article")} {cyan("/// cite/article:")}')
+    print(f'    {dim("The quoted text goes here.")}')
+    print(f'    {dim("Multiple paragraphs are fine.")}')
+    print(f'    {cyan("\\\\\\")}')
+    print()
+    note(r'''
+• Open with /// <source_uri> [/// <tag>:]
+• Content in the middle (any text, multiple lines)
+• Close with \\\ on its own line
+• Optional #!q3n-format header identifies the file
+• Tags use slash hierarchy: cite/article, note/idea, etc.''')
+    if not wait():
+        return 0
+
+    # ── 3 ──
+    section('3. Getting Started')
+    note(f'''
+Create your first file:
+
+  {green("$")} q3n init my-collection.q3n
+
+Then add an entry with the interactive wizard:
+
+  {green("$")} q3n create my-collection.q3n
+
+The wizard will guide you through source type, URI, tag,
+and quote text. When you're done, your entry is saved.''')
+    if not wait():
+        return 0
+
+    # ── 4 ──
+    section('4. Viewing Entries')
+    note(f'''
+Show all entries in a file:
+
+  {green("$")} q3n show my-collection.q3n
+
+Show entry #3 specifically (with Q3N source view):
+
+  {green("$")} q3n show my-collection.q3n 3
+
+List entries across all Q3N files in a directory:
+
+  {green("$")} q3n list .
+
+See statistics:
+
+  {green("$")} q3n stats .''')
+    if not wait():
+        return 0
+
+    # ── 5 ──
+    section('5. Searching & Filtering')
+    note(f'''
+Search across files:
+
+  {green("$")} q3n search "keyword" .
+
+Search with regular expressions:
+
+  {green("$")} q3n search "Stonewall|Liberation" .
+
+Matches are highlighted with context.''')
+    if not wait():
+        return 0
+
+    # ── 6 ──
+    section('6. Exporting')
+    note(f'''
+Q3N can export to other formats:
+
+  {green("$")} q3n export collection.q3n -o quotes.md -f md
+  {green("$")} q3n export collection.q3n -o quotes.json -f json
+  {green("$")} q3n export collection.q3n -o quotes.txt -f txt
+
+Markdown export uses blockquotes. JSON is structured data.
+Plain text strips all formatting.''')
+    if not wait():
+        return 0
+
+    # ── 7 ──
+    section('7. URI Schemes')
+    note('''
+Q3N supports many source types:
+
+  🌐 https://   Web pages
+  📄 file://    Local files (use #line=N for line refs)
+  📚 isbn://    Books (ISBN;Title;Author;Year)
+  📖 doi://     Academic papers
+  📋 arxiv://   arXiv papers
+  🎬 yt://      YouTube videos
+  👤 q3n://     Person references
+
+Choose the right scheme, and Q3N will track domain, author,
+or other metadata automatically.''')
+    if not wait():
+        return 0
+
+    # ── 8 ──
+    section('8. Next Steps')
+    note(f'''
+• See all commands:  {green("q3n --help")}
+• Command help:     {green("q3n help <command>")}
+• Man page:         {green("man q3n")}
+• GUI app:          {green("python3 gui/app.py")}
+
+The GUI lets you browse, edit, and search visually with
+the same underlying Q3N format.''')
+
+    print(f'\n  {green(SYM["check"])} Tutorial complete. Happy quoting!')
+    return 0
+
+
+def cmd_help(args):
+    """Show detailed help for a command, or the man page."""
+    if args.command_name:
+        # Show subcommand help via argparse
+        import subprocess
+        import shutil
+        # If man is available and this is a general help, use man
+        if shutil.which('man') and args.command_name in ('man', 'manual'):
+            return _show_man()
+        # Otherwise print brief help listing
+        print(bold('Q3N commands:'))
+        for cmd, desc in [
+            ('show FILE [n]', 'Display entries'),
+            ('list [DIR]', 'List entries across files'),
+            ('create FILE', 'Interactive entry creation'),
+            ('edit FILE [n]', 'Edit an entry'),
+            ('search PATTERN [DIR]', 'Search entry text'),
+            ('stats [DIR]', 'Show collection statistics'),
+            ('export FILE -o OUT -f FMT', 'Export entries'),
+            ('import SRC DEST', 'Import entries'),
+            ('index [DIR]', 'Generate markdown index'),
+            ('init FILE', 'Create empty Q3N file'),
+            ('tutorial', 'Interactive tutorial'),
+            ('help [CMD]', 'This help or man page'),
+        ]:
+            print(f'  {green(cmd):30} {dim(desc)}')
+        print(f'\n  {dim("See q3n <command> --help for detailed options")}')
+        return 0
+
+    return _show_man()
+
+
+def _show_man():
+    """Display the man page."""
+    man_path = Path(__file__).resolve().parent.parent / 'docs' / 'man' / 'q3n.1'
+    if not man_path.exists():
+        print(f'{yellow("Man page not found at")} {man_path}')
+        return 1
+
+    import subprocess
+    import shutil
+    if shutil.which('man'):
+        try:
+            subprocess.run(['man', str(man_path)], check=True)
+            return 0
+        except subprocess.CalledProcessError:
+            pass
+
+    # Fallback: strip roff and print
+    text = man_path.read_text()
+    for line in text.split('\n'):
+        if line.startswith('.\\"') or line.startswith('.') and not line.startswith('.SH'):
+            continue
+        print(line)
+    return 0
+
+
+def cmd_init(args):
+    path = Path(args.file)
+    if path.exists():
+        print(f'  {yellow(f"{path} already exists")}')
+        confirm = input(f'  {cyan(SYM["arrow"])} Overwrite? (y/N): ').strip().lower()
+        if confirm != 'y':
+            return 1
+    from core.q3n import serialize
+    header = f'#!q3n-format\n# Created: {datetime.now().strftime("%Y-%m-%d")}\n'
+    path.write_text(header + '\n', encoding='utf-8')
+    print(f'  {green(SYM["check"])} {bold(str(path))} initialized')
+    return 0
+
+
+# ── Main dispatch ─────────────────────────────────────────────────────
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(
+        description='Q3N — Quote Triple-Slash Notation CLI',
+        formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('--no-color', action='store_true',
+                        help='Disable colored output')
+    sub = parser.add_subparsers(dest='command', title='commands')
+
+    # show
+    p = sub.add_parser('show', help='Display entries')
+    p.add_argument('file', help='Q3N file')
+    p.add_argument('number', nargs='?', type=int, help='Entry number')
+    p.add_argument('--json', action='store_true', help='JSON output')
+
+    # list
+    p = sub.add_parser('list', aliases=['ls'], help='List entries across files')
+    p.add_argument('directory', nargs='?', default='.', help='Directory')
+    p.add_argument('--json', action='store_true', help='JSON output')
+
+    # create
+    p = sub.add_parser('create', help='Interactive entry creation')
+    p.add_argument('file', help='Q3N file to append to')
+
+    # edit
+    p = sub.add_parser('edit', help='Edit an entry interactively')
+    p.add_argument('file', help='Q3N file')
+    p.add_argument('number', nargs='?', type=int, help='Entry number')
+
+    # search
+    p = sub.add_parser('search', help='Search entry text (regex)')
+    p.add_argument('pattern', help='Regex pattern')
+    p.add_argument('directory', nargs='?', default='.', help='File or directory')
+
+    # stats
+    p = sub.add_parser('stats', help='Show collection statistics')
+    p.add_argument('directory', nargs='?', default='.', help='File or directory')
+    p.add_argument('--json', action='store_true', help='JSON output')
+
+    # export
+    p = sub.add_parser('export', help='Export entries')
+    p.add_argument('file', help='Source Q3N file')
+    p.add_argument('-o', '--output', help='Output file')
+    p.add_argument('-f', '--format', default='txt',
+                   choices=['q3n', 'json', 'md', 'txt'],
+                   help='Export format')
+
+    # import
+    p = sub.add_parser('import', help='Import entries')
+    p.add_argument('source', help='Source file')
+    p.add_argument('directory', help='Output file or directory')
+    p.add_argument('-f', '--format', default='q3n',
+                   choices=['q3n', 'json'], help='Source format')
+
+    # index
+    p = sub.add_parser('index', help='Generate index')
+    p.add_argument('directory', nargs='?', default='.', help='File or directory')
+
+    # init
+    p = sub.add_parser('init', help='Create empty Q3N file')
+    p.add_argument('file', help='File path')
+
+    # fortune
+    p = sub.add_parser('fortune', help='Display random quote as fortune')
+    p.add_argument('directory', nargs='?', default='.',
+                   help='File or directory to source fortunes from')
+    p.add_argument('-c', '--count', type=int, default=1,
+                   help='Number of fortunes to show')
+    p.add_argument('--art', choices=['cookie', 'penguin', 'book', 'lightbulb',
+                                     'computer', 'star', 'cat', 'brain',
+                                     'scroll'],
+                   help='Specific ASCII art')
+    p.add_argument('--no-art', action='store_true',
+                   help='Suppress ASCII art')
+
+    # tutorial
+    p = sub.add_parser('tutorial',
+                       help='Interactive tutorial for first-time users')
+
+    # help
+    p = sub.add_parser('help', help='Show man page or command help')
+    p.add_argument('command_name', nargs='?', help='Command to get help for')
+
+    args = parser.parse_args()
+
+    if getattr(args, 'no_color', False):
+        global USE_COLOR
+        USE_COLOR = False
+
+    cmds = {
+        'show': cmd_show, 'list': cmd_list, 'ls': cmd_list,
+        'create': cmd_create, 'edit': cmd_edit,
+        'search': cmd_search, 'stats': cmd_stats,
+        'export': cmd_export, 'import': cmd_import,
+        'index': cmd_index, 'init': cmd_init,
+        'fortune': cmd_fortune,
+        'tutorial': cmd_tutorial, 'help': cmd_help,
+    }
+
+    fn = cmds.get(args.command)
+    if fn:
+        return fn(args)
+    parser.print_help()
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

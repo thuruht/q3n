@@ -1,0 +1,31 @@
+#!q3n-format
+
+/// https://en.wikipedia.org/wiki/I_Have_a_Dream
+I have a dream that my four little children will one day live in a
+nation where they will not be judged by the color of their skin but by
+the content of their character.
+\\\
+
+/// isbn://978-0-452-28423-4;1984;George_Orwell;1949 /// dystopia:
+War is peace. Freedom is slavery. Ignorance is strength.
+\\\
+
+/// q3n://mlk:king;mlk@peace.org;'Martin Luther King Jr.' /// civil-rights:
+Darkness cannot drive out darkness; only light can do that.
+Hate cannot drive out hate; only love can do that.
+\\\
+
+/// file:///home/user/notes/meeting-notes.txt#line=15
+The customer wants the feature by next sprint.
+\\\
+
+/// https://quoteinvestigator.com/2014/11/05/insanity/
+The definition of insanity is doing the same thing over and over and
+expecting different results.
+\\\
+
+/// isbn://978-0-06-112008-4;To_Kill_a_Mockingbird;Harper_Lee;1960 /// fiction:
+You never really understand a person until you consider things from
+his point of view... Until you climb inside of his skin and walk
+around in it.
+\\\

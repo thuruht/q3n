@@ -1,0 +1,79 @@
+# Q3N ASCII Art Collection
+# These can be imported by core/fortune.py or displayed with q3n fortune --art <name>
+#
+# Format: [art-name]
+# <art content>
+#
+# Available art names: cookie, penguin, book, lightbulb, computer, star, cat, brain, scroll
+
+[cookie]
+    .-~~~-.
+   /       \
+  |  FORTUNE |
+   \       /
+    `-...-'
+
+[penguin]
+   .-.
+  (o o)
+  (   )
+  -"-"-
+
+[book]
+    .--.
+   |o_o |
+   |:_/ |
+  //   \ \
+ (|     | )
+/'\_   _/`\
+\___)=(___/
+
+[lightbulb]
+     .-.
+    (o o)
+    |   |
+    '~~~'
+     /|\
+    / | \
+   /  |  \
+
+[computer]
+    .---.
+   | .-. |
+   | |~| |
+   | '-' |
+    `---'
+
+[star]
+      .
+     /|\
+    /*|*\
+   /__|__\
+  /__|*|__\
+     |*|
+     |_|
+
+[cat]
+ /\_/\
+( o.o )
+ > ^ <
+
+[brain]
+    _---~~(~~-_.
+  _{        )   )
+ ,   ) -~~- ( ,-' )_
+(  `-,_..`., )-- '_,)
+( ` _)  (  -~( -_ `,  }
+(_-  _  ~_-~~~~`,  ,' )
+  `~ -^(    __;-,((()))
+        ~~~~ {_ -_(())
+               `\  }
+                 { }
+
+[scroll]
+  .-~~-.
+ /      \
+|        |
+|        |
+ \      /
+  `-..-'

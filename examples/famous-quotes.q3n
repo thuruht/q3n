@@ -1,0 +1,55 @@
+#!q3n-format
+# Q3N Collection of Famous Quotes
+# Creation Date: 2025-06-22
+
+/// q3n://albert:@einstein;albert@princeton.edu;'Albert Einstein'
+Imagination is more important than knowledge. For knowledge is limited, whereas imagination embraces the entire world, stimulating progress, giving birth to evolution.
+\\\
+
+/// q3n://alan:@turing;alan@manchester.ac.uk;'Alan Turing'
+Sometimes it is the people no one can imagine anything of who do the things no one can imagine.
+\\\
+
+/// isbn://9780547249643;'1984';'George Orwell';1949
+War is peace. Freedom is slavery. Ignorance is strength.
+\\\
+
+/// q3n://ada:@lovelace;ada@babbage.uk;'Ada Lovelace'
+The Analytical Engine has no pretensions whatever to originate anything. It can do whatever we know how to order it to perform.
+\\\
+
+/// q3n://carl:@sagan;carl@cosmos.org;'Carl Sagan'
+We are a way for the cosmos to know itself.
+\\\
+
+/// isbn://9780553380163;'A Brief History of Time';'Stephen Hawking';1988
+The universe doesn't allow perfection.
+\\\
+
+/// q3n://grace:@hopper;grace@navy.mil;'Grace Hopper'
+The most dangerous phrase in the language is, "We've always done it this way."
+\\\
+
+/// q3n://richard:@feynman;richard@caltech.edu;'Richard Feynman'
+I think it's much more interesting to live not knowing than to have answers which might be wrong.
+\\\
+
+/// q3n://marie:@curie;marie@sorbonne.fr;'Marie Curie'
+Nothing in life is to be feared, it is only to be understood. Now is the time to understand more, so that we may fear less.
+\\\
+
+/// q3n://nikola:@tesla;nikola@ac.com;'Nikola Tesla'
+The present is theirs; the future, for which I really worked, is mine.
+\\\
+
+/// isbn://9780316505314;'The Martian';'Andy Weir';2014
+In the face of overwhelming odds, I'm left with only one option: I'm going to have to science the shit out of this.
+\\\
+
+/// q3n://tim:@berners-lee;tim@w3.org;'Tim Berners-Lee'
+This is for everyone.
+\\\
+
+/// doi://10.1126/science.187.4176.433
+The more the universe seems comprehensible, the more it also seems pointless.
+\\\

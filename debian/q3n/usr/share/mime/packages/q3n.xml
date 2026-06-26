@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-q3n">
+    <comment>Q3N quote collection</comment>
+    <comment xml:lang="de">Q3N-Zitatsammlung</comment>
+    <glob pattern="*.q3n"/>
+    <glob pattern="*.q3nt"/>
+    <glob pattern="*.quotation"/>
+    <glob pattern="*.quotes"/>
+    <magic priority="50">
+      <match value="#!q3n-format" type="string" offset="0"/>
+    </magic>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+</mime-info>

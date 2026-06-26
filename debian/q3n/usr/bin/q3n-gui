@@ -1,0 +1,12 @@
+#! /usr/bin/python3
+"""Launcher script for Q3N Manager GUI — use from repo or installed."""
+import sys
+from pathlib import Path
+
+# Allow running from repo
+_repo = Path(__file__).resolve().parent.parent
+if (_repo / 'gui' / 'main_window.py').exists():
+    sys.path.insert(0, str(_repo))
+
+from gui.__main__ import main
+main()

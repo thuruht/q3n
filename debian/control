@@ -1,0 +1,24 @@
+Source: q3n
+Section: text
+Priority: optional
+Maintainer: Q3N Project <thuruht@users.noreply.github.com>
+Build-Depends: debhelper-compat (= 13), dh-python, python3-all, python3-setuptools
+Standards-Version: 4.6.2
+Homepage: https://github.com/thuruht/q3n
+Rules-Requires-Root: no
+
+Package: q3n
+Architecture: all
+Depends: ${misc:Depends}, ${python3:Depends}, python3-pyside6.qtwidgets
+Recommends: python3-pip
+Description: Quote Triple-Slash Notation — manage quoted text collections
+ Q3N is a plain-text file format and toolchain for storing
+ quotations, citations, and annotated excerpts with source URIs.
+ .
+ This package provides:
+  • q3n CLI   — create, search, edit, export Q3N files
+  • Python library  — core/q3n.py for integration
+  • Q3N Manager GUI — graphical browser/editor (python3 gui/app.py)
+ .
+ Entries use the simple /// … \\\ delimiter notation with
+ support for https, file, ISBN, DOI, arXiv, and custom URIs.

@@ -1,0 +1,38 @@
+{
+  "New Q3N Entry": {
+    "prefix": "q3n",
+    "body": [
+      "/// ${1:https://example.com/article} /// ${2:tag}:",
+      "$3",
+      "\\\\\\"
+    ],
+    "description": "Create a new Q3N entry"
+  },
+  "Web Source Entry": {
+    "prefix": "web",
+    "body": [
+      "/// https://${1:example.com/page} /// ${2:web}:",
+      "$3",
+      "\\\\\\"
+    ],
+    "description": "Create an entry with a web source"
+  },
+  "Book Entry": {
+    "prefix": "book",
+    "body": [
+      "/// isbn://${1:978-3-16-148410-0};${2:Title};${3:Author};${4:2024} /// ${5:book}:",
+      "$6",
+      "\\\\\\"
+    ],
+    "description": "Create an entry with an ISBN book source"
+  },
+  "Person Entry": {
+    "prefix": "person",
+    "body": [
+      "/// q3n://${1:handle}:${2:id};${3:email@example.com};${4:'Name'} /// ${5:person}:",
+      "$6",
+      "\\\\\\"
+    ],
+    "description": "Create an entry referencing a person"
+  }
+}

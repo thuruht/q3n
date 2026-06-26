@@ -1,0 +1,256 @@
+.\" Man page for q3n
+.\" Automatically generated
+
+.TH Q3N 1 "2026-06-25" "1.0" "Q3N Manual"
+
+.SH NAME
+q3n \- Quote Triple-Slash Notation CLI — manage quoted text collections
+
+.SH SYNOPSIS
+.B q3n
+.I command
+.RI [ options ] " [" args ]
+.br
+.B q3n
+\-\-help
+.br
+.B q3n help
+.br
+.B q3n tutorial
+
+.SH DESCRIPTION
+Q3N (Quote Triple-Slash Notation) is a plain-text file format for storing
+quotations, citations, and annotated excerpts with their source URIs.
+Entries are delimited by \fB///\fR (open) and \fB\\\\\fR (close).
+
+A Q3N entry looks like this in its source form:
+
+.RS
+.nf
+/// https://example.com/article /// cite/article:
+Quoted text goes here.
+It can span multiple paragraphs.
+\\\\\
+.RE
+
+.PP
+.B q3n
+is the command-line tool for creating, viewing, searching, and managing
+Q3N files.
+
+.SH COMMANDS
+
+.SS show
+Display entries from a Q3N file.
+
+.B Usage:
+.RS
+q3n show <file> [n] [--json]
+.RE
+
+With an optional entry number, shows only that entry along with its
+raw Q3N source. With \fB--json\fR, outputs structured JSON.
+
+.SS list (ls)
+Scan a directory and list all entries found across Q3N files.
+
+.B Usage:
+.RS
+q3n list [directory] [--json]
+.RE
+
+.SS create
+Interactive wizard for creating a new Q3N entry.
+Walks through source-type selection, URI entry, tagging, and quote text.
+
+.B Usage:
+.RS
+q3n create <file>
+.RE
+
+If the file exists, the new entry is appended. Otherwise a new file is
+created.
+
+.SS edit
+Edit an existing entry interactively. Prompts for URI, tag, and quote
+text, showing the current values as defaults.
+
+.B Usage:
+.RS
+q3n edit <file> [n]
+.RE
+
+Without an entry number, lists all entries and prompts for selection.
+
+.SS search
+Search entry text using a regular expression pattern.
+Matches are shown with surrounding context and highlighted.
+
+.B Usage:
+.RS
+q3n search <pattern> [file-or-directory]
+.RE
+
+.SS stats
+Show collection statistics: entry count, character/word counts,
+tag distribution (with bar chart), and domain distribution.
+
+.B Usage:
+.RS
+q3n stats [file-or-directory] [--json]
+.RE
+
+.SS export
+Export entries to an alternative format.
+
+.B Usage:
+.RS
+q3n export <file> -o <output> -f <format>
+.RE
+
+Supported formats: \fBtxt\fR (plain text), \fBjson\fR (structured data),
+\fBmd\fR (Markdown with blockquotes), \fBq3n\fR (canonical Q3N).
+
+.SS import
+Import entries from another file (Q3N or JSON) into a Q3N file.
+If the destination is a directory, a new file is created.
+
+.B Usage:
+.RS
+q3n import <source> <destination> [-f q3n|json]
+.RE
+
+.SS index
+Generate a markdown index of all entries showing a table with
+entry numbers, URIs, tags, and previews, grouped by tag.
+
+.B Usage:
+.RS
+q3n index [file-or-directory]
+.RE
+
+.SS init
+Create a new empty Q3N file with the \fB#!q3n-format\fR header.
+
+.B Usage:
+.RS
+q3n init <file>
+.RE
+
+.SS tutorial
+Display an interactive tutorial introducing the Q3N format and CLI commands.
+
+.B Usage:
+.RS
+q3n tutorial
+.RE
+
+.SS help
+Show this man page or detailed help for any command.
+
+.B Usage:
+.RS
+q3n help [command]
+.RE
+
+.SH FILE FORMAT
+
+.B Q3N
+uses the following structure:
+
+.RS
+.nf
+#!q3n-format
+
+/// <source_uri> [/// <tag>:]
+<quoted text, possibly multi-line>
+\\\\\
+.RE
+
+.TP
+.B #!q3n-format
+Optional header for file-type identification.
+.TP
+.B /// <uri> [/// <tag>:]
+Opening delimiter, source URI, and optional tag. The URI is any valid
+scheme-prefixed identifier (https://, file://, isbn://, doi://, etc.).
+Tags use a slash for hierarchy (e.g., \fBcite/article\fR, \fBnote/idea\fR)
+and are terminated by a colon.
+.TP
+.B <quoted text>
+The content — any UTF-8 text, multiple lines.
+.TP
+.B \\\\
+Closing delimiter (three backslashes) on its own line.
+
+.SS URI Schemes
+
+.TP
+.B https:// http://
+Web page URLs.
+.TP
+.B file://
+Local file paths; append \fB#line=N\fR for line references.
+.TP
+.B isbn://
+Book references; format: \fBisbn://ISBN;'Title';'Author';Year\fR.
+.TP
+.B doi://
+Academic paper DOIs.
+.TP
+.B arxiv://
+arXiv preprint IDs.
+.TP
+.B yt://
+YouTube video identifiers.
+.TP
+.B q3n://
+Person references; format: \fBq3n://@handle;email;'Name'\fR.
+
+.SH EXAMPLES
+
+Create your first Q3N collection:
+.RS
+$ q3n init my-quotes.q3n
+$ q3n create my-quotes.q3n
+.RE
+
+List entries and show one in detail:
+.RS
+$ q3n list .
+$ q3n show my-quotes.q3n 1
+.RE
+
+Export as Markdown:
+.RS
+$ q3n export my-quotes.q3n -o quotes.md -f md
+.RE
+
+Search across all files:
+.RS
+$ q3n search "Stonewall" .
+.RE
+
+.SH ENVIRONMENT
+
+No environment variables are required. The tool auto-detects color
+support based on whether stdout is a terminal. Pass \fB--no-color\fR
+to disable ANSI escape sequences.
+
+.SH FILES
+
+Q3N files conventionally use the extension \fB.q3n\fR.
+Alternative extensions: \fB.q3nt\fR, \fB.quotation\fR, \fB.quotes\fR.
+
+.SH BUGS
+
+Report issues at https://github.com/thuruht/q3n/issues
+
+.SH LICENSE
+
+AGPL-3.0 WITH Anti-Fascist-Exception
+
+.SH SEE ALSO
+
+.BR q3n (7),
+https://github.com/thuruht/q3n

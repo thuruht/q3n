@@ -1,0 +1,54 @@
+#!q3n-format
+# Extended syntax examples — structured content and code in quote bodies
+# URI metadata (query params, fragments) is also demonstrated
+
+/// https://example.org/articles/web-design?lang=en#section-3
+A simple webpage citation with a fragment identifier and language parameter.
+\\\
+
+/// q3n://john:@doe;john.doe@example.com;'John Doe'
+This is an example of a personal attribution using the q3n:// scheme.
+The q3n:// scheme supports handles, IDs, emails, and names.
+\\\
+
+/// isbn://9781234567890;Example_Book_Title;Author_Name;2023
+This is a citation from a book with ISBN, title, author, and year.
+The isbn:// scheme is useful for all book citations.
+\\\
+
+/// doi://10.1000/example.12345?src=paper&page=42
+Citations from academic papers can use the doi:// scheme with DOI identifiers.
+This includes query parameters for additional metadata.
+\\\
+
+/// arxiv://1234.56789
+The arxiv:// scheme can be used for preprints and papers on ArXiv.
+\\\
+
+/// file:///home/user/documents/notes.txt
+Local file references can use the standard file:// scheme.
+\\\
+
+/// yt://dQw4w9WgXcQ?t=43
+Media sources like YouTube can be referenced with custom schemes.
+This links to a specific timestamp in a video.
+\\\
+
+/// https://api.github.com/repos/thuruht/q3n?source=example
+{
+  "code": "// Example JSON in a Q3N block",
+  "structured": true,
+  "data": {
+    "type": "example",
+    "nested": [1, 2, 3]
+  }
+}
+\\\
+
+/// q3n://langdev:@python;python@python.org;'Python'?lang=python
+def example_function():
+    """
+    This shows how to include code blocks with proper syntax.
+    """
+    return "Q3N is versatile!"
+\\\

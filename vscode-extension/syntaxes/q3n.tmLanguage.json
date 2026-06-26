@@ -1,0 +1,72 @@
+{
+  "name": "Q3N",
+  "scopeName": "source.q3n",
+  "fileTypes": ["q3n", "q3nt", "quotation", "quotes"],
+  "patterns": [
+    {
+      "name": "meta.header.q3n",
+      "match": "^#!q3n-format$",
+      "comment": "Q3N format header declaration"
+    },
+    {
+      "name": "meta.entry.q3n",
+      "begin": "^///\\s+",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.delimiter.q3n" }
+      },
+      "end": "^\\\\\\\\$",
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.delimiter.q3n" }
+      },
+      "patterns": [
+        {
+          "name": "meta.uri.q3n",
+          "begin": "(?<=///\\s+)",
+          "end": "(?:\\s+///\\s+)?(?=\\n|$)",
+          "patterns": [
+            {
+              "match": "\\b(https?|ftp|file)://\\S+",
+              "name": "markup.underline.link.http.q3n"
+            },
+            {
+              "match": "\\b(isbn|doi|arxiv)://\\S+",
+              "name": "markup.underline.link.academic.q3n"
+            },
+            {
+              "match": "\\b(yt|youtube)://\\S+",
+              "name": "markup.underline.link.media.q3n"
+            },
+            {
+              "match": "\\bq3n://\\S+",
+              "name": "markup.underline.link.person.q3n"
+            },
+            {
+              "match": "\\S+",
+              "name": "string.other.link.q3n"
+            }
+          ]
+        },
+        {
+          "name": "entity.name.tag.q3n",
+          "match": "///\\s+[^:\\s]+:",
+          "captures": {
+            "0": {
+              "name": "entity.name.tag.q3n",
+              "patterns": [
+                {
+                  "match": "///",
+                  "name": "punctuation.definition.delimiter.q3n"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "comment.line.empty-entry.q3n",
+      "match": "^///\\s*$",
+      "comment": "Empty /// lines (incomplete entries)"
+    }
+  ]
+}

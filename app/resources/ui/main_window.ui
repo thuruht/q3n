@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainForm</class>
+ <widget class="QWidget" name="MainForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>500</width>
+    <height>400</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Q3N Designer Preview</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="title_label">
+     <property name="text">
+      <string>Q3N Entry Viewer</string>
+     </property>
+     <property name="styleSheet">
+      <string>font-size: 18px; font-weight: bold; padding: 8px;</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="searchRow">
+     <item>
+      <widget class="QLineEdit" name="search_input">
+       <property name="placeholderText">
+        <string>Search quotes...</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="tag_filter">
+       <item>
+        <property name="text">
+         <string>All tags</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>book</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>web</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>philosophy</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QListWidget" name="entry_list"/>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="buttonRow">
+     <item>
+      <widget class="QPushButton" name="refresh_button">
+       <property name="text">
+        <string>Refresh</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="export_button">
+       <property name="text">
+        <string>Export JSON</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="hint">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>40</width>
+         <height>20</height>
+        </rect>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
