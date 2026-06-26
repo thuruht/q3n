@@ -21,9 +21,12 @@ const SCHEME_CATEGORIES = {
   isbn: 'book',
   doi: 'academic',
   arxiv: 'academic',
+  pubmed: 'academic',
+  orcid: 'person',
   file: 'file',
   yt: 'media',
   youtube: 'media',
+  spotify: 'media',
 };
 
 const RECOGNIZED_EXTENSIONS = ['.q3n', '.q3nt', '.quotation', '.quotes'];
@@ -122,6 +125,27 @@ function parseArxivUri(uri) {
   return { type: 'academic', arxivId: uri.replace('arxiv://', '') };
 }
 
+function parsePubmedUri(uri) {
+  return { type: 'academic', pmid: uri.replace('pubmed://', '') };
+}
+
+function parseOrcidUri(uri) {
+  return { type: 'person', orcid: uri.replace('orcid://', '') };
+}
+
+function parseSpotifyUri(uri) {
+  const rest = uri.replace('spotify://', '');
+  const result = { type: 'media', platform: 'spotify' };
+  const colon = rest.indexOf(':');
+  if (colon !== -1) {
+    result.kind = rest.slice(0, colon);
+    result.id = rest.slice(colon + 1);
+  } else {
+    result.id = rest;
+  }
+  return result;
+}
+
 function parseYtUri(uri) {
   let rest = uri.replace('yt://', '');
   const result = { type: 'media', platform: 'youtube' };
@@ -158,6 +182,9 @@ const URI_PARSERS = {
   isbn: parseIsbnUri,
   doi: parseDoiUri,
   arxiv: parseArxivUri,
+  pubmed: parsePubmedUri,
+  orcid: parseOrcidUri,
+  spotify: parseSpotifyUri,
   yt: parseYtUri,
   youtube: parseYtUri,
   file: parseFileUri,
@@ -217,8 +244,13 @@ class Q3NEntry {
         if (meta.year) parts.push(`(${meta.year})`);
         if (parts.length) return `— ${parts.join(', ')}`;
         break;
-      case 'doi': case 'arxiv':
+      case 'doi': case 'arxiv': case 'pubmed':
         return `— Academic paper (${this.scheme})`;
+      case 'orcid':
+        if (meta.orcid) return `— ORCID ${meta.orcid}`;
+        break;
+      case 'spotify':
+        return `— Spotify ${meta.kind || 'track'}`;
       case 'https': case 'http':
         if (meta.domain) return `— ${meta.domain}`;
         break;
@@ -250,6 +282,12 @@ function parse(text) {
       let closed = false;
       while (i < lines.length) {
         if (Q3N_END.test(lines[i])) { closed = true; break; }
+        // Allow \\\ at end of the last quote line (Python-compatible)
+        if (lines[i].trimEnd().endsWith('\\\\\\')) {
+          quoteLines.push(lines[i].trimEnd().slice(0, -3));
+          closed = true;
+          break;
+        }
         quoteLines.push(lines[i]);
         i++;
       }

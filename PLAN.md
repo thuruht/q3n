@@ -34,21 +34,16 @@ Tasks:
 
 ---
 
-## Iteration 2 — JS Parser Parity
+## Iteration 2 — JS Parser Parity ✓ DONE
 
 **Goal:** Bring `src/js/q3n-parser.js` up to parity with `core/q3n.py`.
 
-Known gaps:
-- JS parser does not handle the inline `\\\` variant (closing marker at end of last quote line) that Python supports
-- JS is missing `pubmed`, `orcid`, `spotify` URI parsers
-- `src/js/test-q3n-parser.js` should be audited and extended to cover edge cases mirroring `tests/test_q3n.py`
-
 Tasks:
-- [ ] Add `parsePubmedUri`, `parseOrcidUri`, `parseSpotifyUri` to JS parser
-- [ ] Register them in `URI_PARSERS` and `SCHEME_CATEGORIES`
-- [ ] Add inline-`\\\` handling to JS `parse()`
-- [ ] Extend `test-q3n-parser.js` with new scheme tests
-- [ ] Confirm `node src/js/test-q3n-parser.js` exits 0
+- [x] Add `parsePubmedUri`, `parseOrcidUri`, `parseSpotifyUri` to JS parser
+- [x] Register them in `URI_PARSERS` and `SCHEME_CATEGORIES`
+- [x] Add inline-`\\\` handling to JS `parse()`
+- [x] Extend `test-q3n-parser.js` with new scheme tests (31 total, all passing)
+- [x] Confirm `node src/js/test-q3n-parser.js` exits 0
 
 ---
 

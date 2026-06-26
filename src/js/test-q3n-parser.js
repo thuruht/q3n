@@ -113,6 +113,31 @@ test('parse yt URI with timestamp', () => {
   assert.strictEqual(meta.timestamp, 42);
 });
 
+test('parse pubmed URI', () => {
+  const meta = Q3NParser.URI_PARSERS.pubmed('pubmed://12345678');
+  assert.strictEqual(meta.type, 'academic');
+  assert.strictEqual(meta.pmid, '12345678');
+});
+
+test('parse orcid URI', () => {
+  const meta = Q3NParser.URI_PARSERS.orcid('orcid://0000-0002-1825-0097');
+  assert.strictEqual(meta.type, 'person');
+  assert.strictEqual(meta.orcid, '0000-0002-1825-0097');
+});
+
+test('parse spotify URI track', () => {
+  const meta = Q3NParser.URI_PARSERS.spotify('spotify://track:4cOdK2wGLETKBW3PvgPWqT');
+  assert.strictEqual(meta.type, 'media');
+  assert.strictEqual(meta.kind, 'track');
+  assert.strictEqual(meta.id, '4cOdK2wGLETKBW3PvgPWqT');
+});
+
+test('parse spotify URI bare', () => {
+  const meta = Q3NParser.URI_PARSERS.spotify('spotify://4cOdK2wGLETKBW3PvgPWqT');
+  assert.strictEqual(meta.id, '4cOdK2wGLETKBW3PvgPWqT');
+  assert.ok(!meta.kind);
+});
+
 // ── Content Type Detection ──
 
 test('detect content type: text', () => {
@@ -139,6 +164,38 @@ test('attribution for q3n entry', () => {
   const entries = Q3NParser.parse(SAMPLE);
   const attr = entries[2].attribution();
   assert.ok(attr.includes('John Doe'));
+});
+
+test('attribution for pubmed entry', () => {
+  const [scheme, path] = Q3NParser.parse('/// pubmed://12345678\nResult.\n\\\\\\')[0] ?
+    [Q3NParser.parse('/// pubmed://12345678\nResult.\n\\\\\\')[0].scheme,
+     Q3NParser.parse('/// pubmed://12345678\nResult.\n\\\\\\')[0].path] : ['', ''];
+  const e = new Q3NParser.Q3NEntry('pubmed://12345678', 'pubmed', '12345678', 'Result.');
+  assert.ok(e.attribution().includes('pubmed'));
+});
+
+test('attribution for orcid entry', () => {
+  const e = new Q3NParser.Q3NEntry('orcid://0000-0002-1825-0097', 'orcid', '0000-0002-1825-0097', 'Cited.');
+  assert.ok(e.attribution().includes('0000-0002-1825-0097'));
+});
+
+test('attribution for spotify entry', () => {
+  const e = new Q3NParser.Q3NEntry('spotify://track:abc', 'spotify', 'track:abc', 'Lyric.');
+  assert.ok(e.attribution().includes('Spotify'));
+  assert.ok(e.attribution().includes('track'));
+});
+
+test('SCHEME_CATEGORIES includes new schemes', () => {
+  assert.strictEqual(Q3NParser.SCHEME_CATEGORIES.pubmed, 'academic');
+  assert.strictEqual(Q3NParser.SCHEME_CATEGORIES.orcid, 'person');
+  assert.strictEqual(Q3NParser.SCHEME_CATEGORIES.spotify, 'media');
+});
+
+test('parse inline \\\\\\  variant', () => {
+  const text = '/// https://example.com\nquote text\\\\\\';
+  const entries = Q3NParser.parse(text);
+  assert.strictEqual(entries.length, 1);
+  assert.strictEqual(entries[0].quote, 'quote text');
 });
 
 // ── Detection ──
