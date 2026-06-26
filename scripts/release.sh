@@ -15,7 +15,7 @@ TARBALL="$BUILD_DIR/q3n-${VERSION}.tar.gz"
 
 : "${GITHUB_TOKEN:?GITHUB_TOKEN env var is required}"
 
-echo "==> Q3N Release v${VERSION}${DRY_RUN:+ (DRY RUN)}"
+echo "==> Q3N Release v${VERSION}$([ "$DRY_RUN" = true ] && echo ' (DRY RUN)' || true)"
 
 # 1. Validate git state
 if [ "$DRY_RUN" = false ]; then
