@@ -7,6 +7,7 @@ from core.q3n import Q3NEntry
 SCHEME_ICONS = {
     'https': '🌐', 'http': '🌐', 'file': '📄',
     'isbn': '📚', 'doi': '📖', 'arxiv': '📋',
+    'pubmed': '🔬', 'orcid': '👤', 'spotify': '🎵',
     'q3n': '👤', 'yt': '🎬', 'youtube': '🎬',
 }
 
@@ -148,6 +149,12 @@ class EntryDetailView(QWidget):
             meta_parts.append(f'DOI: {meta["doi"]}')
         if 'arxiv_id' in meta:
             meta_parts.append(f'arXiv: {meta["arxiv_id"]}')
+        if 'pmid' in meta:
+            meta_parts.append(f'PMID: {meta["pmid"]}')
+        if 'orcid' in meta:
+            meta_parts.append(f'ORCID: {meta["orcid"]}')
+        if 'kind' in meta and entry.scheme == 'spotify':
+            meta_parts.append(f'{meta["kind"]}: {meta.get("id", "")}')
         if 'name' in meta:
             meta_parts.append(meta['name'])
         if 'email' in meta:

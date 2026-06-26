@@ -47,21 +47,16 @@ Tasks:
 
 ---
 
-## Iteration 3 — GUI: Filter Persistence & UX
+## Iteration 3 — GUI: Filter Persistence & UX ✓ DONE
 
 **Goal:** Polish the search/filter experience.
 
-Known issues / improvements:
-- After filtering, selecting an entry and editing it should update `_all_entries` reliably (current identity-based lookup is fragile — replace with index tracking)
-- Tag filter dropdown should update when an entry's tag is edited
-- Add keyboard shortcut `Ctrl+F` to focus the search box
-- `EntryDetailView` should show the scheme icon next to the URI field
-
 Tasks:
-- [ ] Replace identity-based `_on_entry_changed` lookup with a cleaner approach (store `(all_entries_index, visible_index)` mapping when filter is applied)
-- [ ] Call `self._tag_filter.set_tags(self._all_entries)` after `_on_entry_changed`
-- [ ] Add `Ctrl+F` shortcut → `self._search_input.setFocus()`
-- [ ] Add scheme icon label next to URI field in `EntryDetailView`
+- [x] Replace fragile identity lookup in `_on_entry_changed` with `list.index()` (uses object identity since Q3NEntry has no __eq__)
+- [x] Call `self._tag_filter.set_tags(self._all_entries)` after `_on_entry_changed`
+- [x] Add `Ctrl+F` shortcut → `self._search_input.setFocus()`
+- [x] Add `pubmed`, `orcid`, `spotify` scheme icons to `EntryDetailView` SCHEME_ICONS
+- [x] Add metadata display for `pmid`, `orcid`, spotify `kind`/`id` fields
 
 ---
 

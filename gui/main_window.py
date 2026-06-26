@@ -313,6 +313,11 @@ class MainWindow(QMainWindow):
         self._add_action(help_menu, "&About Q3N Manager", None, self._show_about)
         self._add_action(help_menu, "About &Qt", None, QApplication.aboutQt)
 
+        search_action = QAction("Focus Search", self)
+        search_action.setShortcut("Ctrl+F")
+        search_action.triggered.connect(lambda: self._search_input.setFocus())
+        self.addAction(search_action)
+
     def _add_action(self, menu, label, shortcut, slot):
         action = QAction(label, self)
         if shortcut:
@@ -361,15 +366,11 @@ class MainWindow(QMainWindow):
             self._detail_view.show_entry(current.row(), e)
 
     def _on_entry_changed(self, row, entry):
+        old_entry = self._model.entry_at(row)
         self._model.update_entry(row, entry)
-        # Keep master list in sync — find matching entry by identity
-        visible = self._model.entries()
-        if row < len(visible):
-            updated = visible[row]
-            for i, e in enumerate(self._all_entries):
-                if e is updated or (e.uri == updated.uri and e.quote == updated.quote):
-                    self._all_entries[i] = entry
-                    break
+        if old_entry in self._all_entries:
+            self._all_entries[self._all_entries.index(old_entry)] = entry
+        self._tag_filter.set_tags(self._all_entries)
         self._modified = True
         self._status.showMessage("Entry updated")
 
