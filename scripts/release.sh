@@ -33,6 +33,10 @@ fi
 # 2. Build AppImage
 echo "==> Building AppImage..."
 "$REPO_ROOT/scripts/build-appimage.sh" "$VERSION"
+if [ ! -f "$APPIMAGE" ]; then
+    echo "ERROR: Expected AppImage not found at $APPIMAGE" >&2
+    exit 1
+fi
 
 # 3. Build .deb
 echo "==> Building Debian package..."
