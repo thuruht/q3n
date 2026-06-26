@@ -48,7 +48,8 @@ venv/
 .env
 .pytest_cache/
 *.AppImage
-build/AppDir/
+scripts/AppDir/usr/
+scripts/AppDir/q3n.png
 scripts/appimagetool-x86_64.AppImage
 .pybuild/
 debian/debhelper-build-stamp
