@@ -84,14 +84,15 @@ Tasks:
 
 ---
 
-## Iteration 6 — Website
+## Iteration 6 — Cloudflare Worker Download Site
 
-**Goal:** Publish `docs/website/index.html` via GitHub Pages.
+**Goal:** Ship a Vite + React Cloudflare Worker (`web/`) that serves a download page for Q3N packages (.deb, .tar.gz, .AppImage, future Flatpak). Assets are linked from GitHub Releases.
 
 Tasks:
-- [ ] Add a GitHub Pages workflow (`.github/workflows/pages.yml`) that publishes `docs/website/` to the `gh-pages` branch on push to `main`
-- [ ] Update internal links in `index.html` to point to the correct GitHub paths (currently some point to old repo structure)
-- [ ] Add a `CNAME` file if a custom domain is wanted
+- [ ] Scaffold `web/` from the vite-react-template pattern (Vite + React + `@cloudflare/vite-plugin`)
+- [ ] `wrangler.toml` with `name = "q3n-site"` and `compatibility_date`
+- [ ] React download page: .deb, .tar.gz, .AppImage, Flatpak (coming soon)
+- [ ] CI job to `wrangler deploy` on push to main
 
 ---
 

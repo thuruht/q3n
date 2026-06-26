@@ -1,0 +1,26 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --c-bg: #0f1117;
+  --c-surface: #1a1d27;
+  --c-border: #2a2d3a;
+  --c-accent: #f6821f;
+  --c-accent2: #4a90e2;
+  --c-text: #e8eaf0;
+  --c-muted: #8892a4;
+  --c-code-bg: #12151e;
+  --radius: 10px;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+body {
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+a { color: var(--c-accent2); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { font-family: var(--font-mono); font-size: 0.85em; }
