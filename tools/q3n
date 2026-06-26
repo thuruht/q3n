@@ -650,6 +650,15 @@ def cmd_fortune(args):
         print(f'{red(SYM["cross"])} No entries found')
         return 1
 
+    if getattr(args, 'filter_tag', None):
+        entries = [e for e in entries if e.tag and args.filter_tag in e.tag]
+    if getattr(args, 'filter_scheme', None):
+        entries = [e for e in entries if e.scheme == args.filter_scheme]
+
+    if not entries:
+        print(f'{yellow(SYM["empty"])} No entries match the filter')
+        return 1
+
     if args.count and args.count > 1:
         selected = random.sample(entries, min(args.count, len(entries)))
         for e in selected:
@@ -960,6 +969,10 @@ def main():
                    help='Specific ASCII art')
     p.add_argument('--no-art', action='store_true',
                    help='Suppress ASCII art')
+    p.add_argument('--filter-tag', metavar='TAG',
+                   help='Only show entries whose tag contains TAG')
+    p.add_argument('--filter-scheme', metavar='SCHEME',
+                   help='Only show entries with this URI scheme (e.g. isbn, doi, q3n)')
 
     # tutorial
     p = sub.add_parser('tutorial',

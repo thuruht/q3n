@@ -83,13 +83,13 @@ def pick_art(entry=None, specific=None):
         return ASCII_ART.get(specific, ASCII_ART["cookie"])
     if entry:
         scheme = entry.scheme
-        if scheme in ('q3n',) and random.random() > 0.5:
+        if scheme in ('q3n', 'orcid') and random.random() > 0.5:
             return ASCII_ART["cat"]
         if scheme == 'isbn' and random.random() > 0.5:
             return ASCII_ART["book"]
-        if scheme in ('doi', 'arxiv') and random.random() > 0.5:
+        if scheme in ('doi', 'arxiv', 'pubmed') and random.random() > 0.5:
             return ASCII_ART["brain"]
-        if scheme in ('yt', 'youtube') and random.random() > 0.5:
+        if scheme in ('yt', 'youtube', 'spotify') and random.random() > 0.5:
             return ASCII_ART["computer"]
     return random.choice(list(ASCII_ART.values()))
 

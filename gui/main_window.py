@@ -301,6 +301,7 @@ class MainWindow(QMainWindow):
         self._add_action(export_menu, "Export as HTML...", None, lambda: self._export('html'))
         self._add_action(export_menu, "Export as Plain Text...", None, lambda: self._export('txt'))
         self._add_action(export_menu, "Export Index...", None, lambda: self._export('index'))
+        self._add_action(export_menu, "Export as Fortune...", None, lambda: self._export('fortune'))
 
         tools_menu = menubar.addMenu("&Tools")
         self._add_action(tools_menu, "Preview as JSON", None, self._preview_json)
@@ -546,10 +547,10 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Export", "No entries to export.")
             return
         ext_map = {'q3n': 'q3n', 'json': 'json', 'md': 'md',
-                   'html': 'html', 'txt': 'txt', 'index': 'md'}
+                   'html': 'html', 'txt': 'txt', 'index': 'md', 'fortune': 'txt'}
         name_map = {
             'q3n': 'Q3N File', 'json': 'JSON', 'md': 'Markdown',
-            'html': 'HTML', 'txt': 'Plain Text', 'index': 'Index'}
+            'html': 'HTML', 'txt': 'Plain Text', 'index': 'Index', 'fortune': 'Fortune'}
         path, _ = QFileDialog.getSaveFileName(
             self, f"Export as {name_map[fmt]}", '',
             f"{name_map[fmt]} Files (*.{ext_map[fmt]});;All Files (*)")

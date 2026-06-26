@@ -60,15 +60,16 @@ Tasks:
 
 ---
 
-## Iteration 4 — Fortune Command Polish
+## Iteration 4 — Fortune Command Polish ✓ DONE
 
 **Goal:** Make `q3n fortune` a first-class feature.
 
 Tasks:
-- [ ] Add `fortune` export format to the GUI Export menu (currently only in CLI)
-- [ ] Add `--filter-tag TAG` flag to `fortune` CLI subcommand
-- [ ] Add `--filter-scheme SCHEME` flag (e.g. show only `isbn://` quotes)
-- [ ] Write tests for `core/fortune.py` (`format_fortune`, `box_text`, `display_fortune`)
+- [x] Add `fortune` export format to the GUI Export menu
+- [x] Add `--filter-tag TAG` flag to `fortune` CLI subcommand
+- [x] Add `--filter-scheme SCHEME` flag
+- [x] Write 22 tests for `core/fortune.py` (format_fortune, box_text, display_fortune, export_fortune, pick_art)
+- [x] Update `pick_art` to cover pubmed, orcid, spotify schemes
 
 ---
 
