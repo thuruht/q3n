@@ -24,6 +24,7 @@ from core.q3n import (
     resolve_uri,
     parse_scheme,
     URI_PARSERS,
+    SCHEME_REGISTRY,
     detect_content_type,
 )
 
@@ -182,6 +183,38 @@ def test_parse_file_uri():
     assert meta['line'] == 42
 
 
+def test_parse_pubmed_uri():
+    meta = URI_PARSERS['pubmed']('pubmed://12345678')
+    assert meta['type'] == 'academic'
+    assert meta['pmid'] == '12345678'
+
+
+def test_parse_orcid_uri():
+    meta = URI_PARSERS['orcid']('orcid://0000-0002-1825-0097')
+    assert meta['type'] == 'person'
+    assert meta['orcid'] == '0000-0002-1825-0097'
+
+
+def test_parse_spotify_uri_track():
+    meta = URI_PARSERS['spotify']('spotify://track:4cOdK2wGLETKBW3PvgPWqT')
+    assert meta['type'] == 'media'
+    assert meta['platform'] == 'spotify'
+    assert meta['kind'] == 'track'
+    assert meta['id'] == '4cOdK2wGLETKBW3PvgPWqT'
+
+
+def test_parse_spotify_uri_album():
+    meta = URI_PARSERS['spotify']('spotify://album:1DFixLWuPkv3KT3TnV35m3')
+    assert meta['kind'] == 'album'
+    assert meta['id'] == '1DFixLWuPkv3KT3TnV35m3'
+
+
+def test_parse_spotify_uri_bare():
+    meta = URI_PARSERS['spotify']('spotify://4cOdK2wGLETKBW3PvgPWqT')
+    assert meta['id'] == '4cOdK2wGLETKBW3PvgPWqT'
+    assert 'kind' not in meta
+
+
 # ── Resolve URI (attribution) ──────────────────────────────────────────
 
 
@@ -201,6 +234,57 @@ def test_resolve_uri_isbn():
     result = resolve_uri(uri_data)
     assert 'Test' in result
     assert 'Book' in result
+
+
+def test_resolve_uri_pubmed():
+    uri_data = {'scheme': 'pubmed', 'uri': 'pubmed://12345678', 'meta': {'pmid': '12345678'}}
+    result = resolve_uri(uri_data)
+    assert 'pubmed' in result
+
+
+def test_resolve_uri_orcid():
+    uri_data = {'scheme': 'orcid', 'uri': 'orcid://0000-0002-1825-0097',
+                'meta': {'orcid': '0000-0002-1825-0097'}}
+    result = resolve_uri(uri_data)
+    assert '0000-0002-1825-0097' in result
+
+
+def test_resolve_uri_spotify():
+    uri_data = {'scheme': 'spotify', 'uri': 'spotify://track:abc',
+                'meta': {'kind': 'track', 'id': 'abc', 'platform': 'spotify'}}
+    result = resolve_uri(uri_data)
+    assert 'Spotify' in result
+    assert 'track' in result
+
+
+# ── Scheme registry ────────────────────────────────────────────────────
+
+
+def test_scheme_registry_new_schemes():
+    assert SCHEME_REGISTRY['pubmed'] == 'academic'
+    assert SCHEME_REGISTRY['orcid'] == 'person'
+    assert SCHEME_REGISTRY['spotify'] == 'media'
+
+
+def test_entry_category_pubmed():
+    e = Q3NEntry('pubmed://12345678', 'pubmed', '12345678', 'Results were significant.')
+    d = e.as_dict()
+    assert d['category'] == 'academic'
+    assert d['meta']['pmid'] == '12345678'
+
+
+def test_entry_category_orcid():
+    e = Q3NEntry('orcid://0000-0002-1825-0097', 'orcid', '0000-0002-1825-0097', 'Cited work.')
+    d = e.as_dict()
+    assert d['category'] == 'person'
+    assert d['meta']['orcid'] == '0000-0002-1825-0097'
+
+
+def test_entry_category_spotify():
+    e = Q3NEntry('spotify://track:4cOdK2w', 'spotify', 'track:4cOdK2w', 'Lyric excerpt.')
+    d = e.as_dict()
+    assert d['category'] == 'media'
+    assert d['meta']['kind'] == 'track'
 
 
 # ── Q3NEntry ───────────────────────────────────────────────────────────

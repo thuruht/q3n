@@ -17,20 +17,20 @@ If CI fails, fix it before starting the next iteration. Never pile work on a bro
 
 ---
 
-## Iteration 1 — Test Coverage for New Schemes
+## Iteration 1 — Test Coverage for New Schemes ✓ DONE
 
 **Goal:** Write tests for `pubmed://`, `orcid://`, `spotify://` URI parsers (added in the consolidation commit but not yet covered by tests).
 
 **Files:** `tests/test_q3n.py`
 
 Tasks:
-- [ ] `test_parse_pubmed_uri` — `URI_PARSERS['pubmed']('pubmed://12345678')` → `{'type': 'academic', 'pmid': '12345678'}`
-- [ ] `test_parse_orcid_uri` — `URI_PARSERS['orcid']('orcid://0000-0002-1825-0097')` → `{'orcid': '0000-0002-1825-0097'}`
-- [ ] `test_parse_spotify_uri` — `URI_PARSERS['spotify']('spotify://track:4cOdK2wGLET')` → `{'kind': 'track', 'id': '4cOdK2wGLET'}`
-- [ ] `test_resolve_uri_pubmed` — attribution returns `"— Academic paper (pubmed)"`
-- [ ] `test_resolve_uri_orcid` — attribution returns `"— ORCID 0000-..."`
-- [ ] `test_resolve_uri_spotify` — attribution returns `"— Spotify track"`
-- [ ] Add entries for new schemes to `famous-quotes.q3n` to exercise them end-to-end
+- [x] `test_parse_pubmed_uri` — `URI_PARSERS['pubmed']('pubmed://12345678')` → `{'type': 'academic', 'pmid': '12345678'}`
+- [x] `test_parse_orcid_uri` — `URI_PARSERS['orcid']('orcid://0000-0002-1825-0097')` → `{'orcid': '0000-0002-1825-0097'}`
+- [x] `test_parse_spotify_uri` — `URI_PARSERS['spotify']('spotify://track:4cOdK2wGLET')` → `{'kind': 'track', 'id': '4cOdK2wGLET'}`
+- [x] `test_resolve_uri_pubmed` — attribution returns `"— Academic paper (pubmed)"`
+- [x] `test_resolve_uri_orcid` — attribution returns `"— ORCID 0000-..."`
+- [x] `test_resolve_uri_spotify` — attribution returns `"— Spotify track"`
+- [x] Add entries for new schemes to `famous-quotes.q3n` to exercise them end-to-end
 
 ---
 
