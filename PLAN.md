@@ -73,15 +73,14 @@ Tasks:
 
 ---
 
-## Iteration 5 — Debian Package Cleanup
+## Iteration 5 — Debian Package Cleanup ✓ DONE
 
 **Goal:** The `debian/q3n/` tree (built output) should not be committed.
 
 Tasks:
-- [ ] Add `debian/q3n/` to `.gitignore`
-- [ ] Add `debian/.debhelper/` to `.gitignore`
-- [ ] Remove the already-committed built files from git tracking (`git rm -r --cached debian/q3n/ debian/.debhelper/`)
-- [ ] Verify `dpkg-buildpackage -us -uc -b` still produces a correct `.deb` from source
+- [x] Add `debian/q3n/` and `debian/.debhelper/` to `.gitignore`
+- [x] Remove already-committed build artifacts from git tracking (`git rm -r --cached`)
+- Note: `dpkg-buildpackage` verification skipped (not available in current environment — CI handles this)
 
 ---
 

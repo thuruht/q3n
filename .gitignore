@@ -57,6 +57,8 @@ debian/*.debhelper.log
 debian/*.postinst.debhelper
 debian/*.prerm.debhelper
 debian/*.substvars
+debian/q3n/
+debian/.debhelper/
 build/
 
 # Memory / session files
