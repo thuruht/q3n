@@ -32,20 +32,20 @@ if [ "$DRY_RUN" = false ]; then
     fi
 fi
 
-# 2. Build AppImage
-echo "==> Building AppImage..."
-"$REPO_ROOT/scripts/build-appimage.sh" "$VERSION"
-if [ ! -f "$APPIMAGE" ]; then
-    echo "ERROR: Expected AppImage not found at $APPIMAGE" >&2
-    exit 1
-fi
-
-# 3. Build .deb
+# 2. Build .deb first (its clean step wipes build/dist and build/work)
 echo "==> Building Debian package..."
 cd "$REPO_ROOT"
 dpkg-buildpackage -us -uc -b
 if [ ! -f "$DEB" ]; then
     echo "ERROR: Expected .deb not found at $DEB" >&2
+    exit 1
+fi
+
+# 3. Build AppImage (after deb clean has already run)
+echo "==> Building AppImage..."
+"$REPO_ROOT/scripts/build-appimage.sh" "$VERSION"
+if [ ! -f "$APPIMAGE" ]; then
+    echo "ERROR: Expected AppImage not found at $APPIMAGE" >&2
     exit 1
 fi
 
