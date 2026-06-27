@@ -880,6 +880,21 @@ def _show_man():
     return 0
 
 
+def cmd_validate(args):
+    from core.q3n import validate_uri
+    entries = parse_file(Path(args.file))
+    any_errors = False
+    for i, entry in enumerate(entries, 1):
+        errs = validate_uri(entry.uri)
+        short_uri = entry.uri[:60] + ('…' if len(entry.uri) > 60 else '')
+        if errs:
+            any_errors = True
+            print(f'entry {i} ({short_uri}): {red(errs[0])}')
+        else:
+            print(f'entry {i} ({short_uri}): {green("OK")}')
+    return 1 if any_errors else 0
+
+
 def cmd_init(args):
     path = Path(args.file)
     if path.exists():
@@ -959,6 +974,10 @@ def main():
     p = sub.add_parser('init', help='Create empty Q3N file')
     p.add_argument('file', help='File path')
 
+    # validate
+    p = sub.add_parser('validate', help='Validate URIs in a Q3N file')
+    p.add_argument('file', help='Q3N file')
+
     # fortune
     p = sub.add_parser('fortune', help='Display random quote as fortune')
     p.add_argument('directory', nargs='?', default='.',
@@ -996,6 +1015,7 @@ def main():
         'search': cmd_search, 'stats': cmd_stats,
         'export': cmd_export, 'import': cmd_import,
         'index': cmd_index, 'init': cmd_init,
+        'validate': cmd_validate,
         'fortune': cmd_fortune,
         'tutorial': cmd_tutorial, 'help': cmd_help,
     }
