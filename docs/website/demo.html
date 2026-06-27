@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Q3N Live Demo</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <script src="q3n-parser.js"></script>
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --secondary-color: #2ecc71;
+      --dark-color: #34495e;
+      --light-color: #ecf0f1;
+      --code-bg: #f7f9fa;
+      --code-border: #e1e4e8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: var(--light-color);
+    }
+    header {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 1.5rem 0;
+      text-align: center;
+    }
+    header h1 { margin-bottom: 0.25rem; }
+    header p { opacity: 0.9; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+    nav {
+      background-color: var(--dark-color);
+      padding: 0.75rem 0;
+      text-align: center;
+    }
+    nav a { color: white; text-decoration: none; font-weight: bold; margin: 0 1rem; }
+    nav a:hover { color: var(--secondary-color); }
+    .demo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      padding: 1.5rem 0;
+    }
+    @media (max-width: 800px) { .demo-grid { grid-template-columns: 1fr; } }
+    .panel {
+      background: white;
+      border-radius: 5px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .panel label {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      color: var(--dark-color);
+    }
+    textarea {
+      flex: 1;
+      min-height: 320px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      border: 1px solid var(--code-border);
+      border-radius: 3px;
+      padding: 0.75rem;
+      resize: vertical;
+    }
+    .card-list { min-height: 320px; overflow-y: auto; }
+    .entry-card {
+      border: 1px solid var(--code-border);
+      border-radius: 4px;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
+      background: var(--code-bg);
+    }
+    .scheme-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: bold;
+      color: white;
+      background: var(--primary-color);
+      margin-bottom: 0.4rem;
+    }
+    .scheme-badge.isbn { background: #8e44ad; }
+    .scheme-badge.doi  { background: #16a085; }
+    .scheme-badge.arxiv { background: #d35400; }
+    .scheme-badge.yt   { background: #c0392b; }
+    .scheme-badge.q3n  { background: #2980b9; }
+    .scheme-badge.file { background: #7f8c8d; }
+    .entry-uri { font-size: 11px; color: #666; margin-bottom: 0.4rem; word-break: break-all; }
+    .entry-tag { font-size: 11px; color: var(--secondary-color); margin-bottom: 0.4rem; }
+    .entry-quote { font-size: 13px; color: #333; }
+    .export-section {
+      background: white;
+      border-radius: 5px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .export-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+    .export-row label { font-weight: bold; }
+    select {
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      padding: 5px 10px;
+      font-size: 13px;
+    }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: 3px;
+      padding: 1rem;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+    footer {
+      background-color: var(--dark-color);
+      color: white;
+      text-align: center;
+      padding: 1.5rem 0;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <h1>Q3N Live Demo</h1>
+    <p>Paste or type Q3N text — parsed instantly in your browser</p>
+  </div>
+</header>
+
+<nav>
+  <a href="index.html">← Back to Q3N</a>
+  <a href="https://github.com/thuruht/q3n">GitHub</a>
+</nav>
+
+<div class="container">
+  <div class="demo-grid">
+    <div class="panel">
+      <label for="input">Paste or type Q3N text</label>
+      <textarea id="input" spellcheck="false"></textarea>
+    </div>
+    <div class="panel">
+      <label>Parsed entries</label>
+      <div class="card-list" id="cards"></div>
+    </div>
+  </div>
+
+  <div class="export-section">
+    <div class="export-row">
+      <label>Export as</label>
+      <select id="format">
+        <option value="json">JSON</option>
+        <option value="markdown">Markdown</option>
+        <option value="fortune">Fortune text</option>
+      </select>
+    </div>
+    <pre id="output"></pre>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <p>&copy; 2025 Q3N Project — Licensed under AGPL-3.0 with Anti-Fascist Exception</p>
+  </div>
+</footer>
+
+<script>
+const SAMPLE = `#!q3n-format
+
+/// https://www.brainyquote.com/quotes/albert_einstein_121993
+Two things are infinite: the universe and human stupidity;
+and I'm not sure about the universe.
+\\\\\\
+
+/// isbn://978-0-14-303943-3;The_Portable_Dorothy_Parker;Dorothy_Parker;2006 /// book:
+I'd rather have a bottle in front of me than a frontal lobotomy.
+\\\\\\
+
+/// https://www.goodreads.com/quotes/163421
+We accept the love we think we deserve.
+\\\\\\
+
+/// q3n://aristotle:384-322;aristotle@athens.gr;'Aristotle' /// philosophy:
+It is the mark of an educated mind to be able to entertain a thought
+without accepting it.
+\\\\\\
+
+/// doi://10.1038/s41586-019-1093-1
+A powerful way to learn is through the act of teaching others.
+\\\\\\
+
+/// yt://dQw4w9WgXcQ?t=30
+We're no strangers to love
+You know the rules and so do I
+\\\\\\
+
+/// arxiv://2301.00001
+The most exciting phrase to hear in science, the one that heralds
+new discoveries, is not "Eureka!" but "That's funny..."
+\\\\\\`;
+
+const SCHEME_COLORS = {
+  https: '', http: '', isbn: 'isbn', doi: 'doi',
+  arxiv: 'arxiv', yt: 'yt', q3n: 'q3n', file: 'file',
+};
+
+let _debounceTimer = null;
+let _entries = [];
+
+function parseAndRender() {
+  const text = document.getElementById('input').value;
+  _entries = Q3NParser.parse(text);
+  renderCards(_entries);
+  renderExport();
+}
+
+function renderCards(entries) {
+  const container = document.getElementById('cards');
+  if (!entries.length) {
+    container.innerHTML = '<p style="color:#999;padding:1rem;">No entries parsed yet.</p>';
+    return;
+  }
+  container.innerHTML = entries.map(e => {
+    const cls = SCHEME_COLORS[e.scheme] || '';
+    const preview = (e.quote || '').slice(0, 120).replace(/\n/g, ' ');
+    const tag = e.tag ? `<div class="entry-tag">🏷 ${e.tag}</div>` : '';
+    const uri = (e.uri || '').slice(0, 80) + (e.uri && e.uri.length > 80 ? '…' : '');
+    return `<div class="entry-card">
+      <span class="scheme-badge ${cls}">${e.scheme || '?'}</span>
+      <div class="entry-uri">${uri}</div>
+      ${tag}
+      <div class="entry-quote">${preview}${(e.quote || '').length > 120 ? '…' : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderExport() {
+  const fmt = document.getElementById('format').value;
+  let result = '';
+  try {
+    if (fmt === 'json') result = Q3NParser.toJSON(_entries, 2);
+    else if (fmt === 'markdown') result = Q3NParser.toMarkdown(_entries);
+    else if (fmt === 'fortune') result = Q3NParser.toFortune(_entries);
+  } catch (e) {
+    result = '(export error: ' + e.message + ')';
+  }
+  document.getElementById('output').textContent = result;
+}
+
+document.getElementById('input').addEventListener('input', () => {
+  clearTimeout(_debounceTimer);
+  _debounceTimer = setTimeout(parseAndRender, 200);
+});
+
+document.getElementById('format').addEventListener('change', renderExport);
+
+// Bootstrap
+document.getElementById('input').value = SAMPLE;
+parseAndRender();
+</script>
+</body>
+</html>
