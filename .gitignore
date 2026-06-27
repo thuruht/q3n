@@ -64,3 +64,4 @@ build/
 
 # Memory / session files
 .remember/
+q3n.egg-info/
