@@ -6,7 +6,7 @@ export PYBUILD_NAME = q3n
 
 override_dh_auto_clean:
 	dh_auto_clean || true
-	rm -rf *.egg-info build dist
+	rm -rf *.egg-info dist .pybuild build/dist build/work build/scripts-3.13
 
 override_dh_auto_install:
 	dh_auto_install
