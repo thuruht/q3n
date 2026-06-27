@@ -175,6 +175,84 @@ URI_PARSERS = {
 }
 
 
+def _isbn13_valid(digits: str) -> bool:
+    if len(digits) != 13 or not digits.isdigit():
+        return False
+    total = sum(int(d) * (1 if i % 2 == 0 else 3) for i, d in enumerate(digits))
+    return total % 10 == 0
+
+
+def _isbn10_valid(digits: str) -> bool:
+    if len(digits) != 10:
+        return False
+    total = 0
+    for i, c in enumerate(digits.upper()):
+        if c == 'X':
+            if i != 9:
+                return False
+            total += 10
+        elif c.isdigit():
+            total += int(c) * (10 - i)
+        else:
+            return False
+    return total % 11 == 0
+
+
+def validate_uri(uri: str) -> list:
+    """Return list of validation error strings. Empty list means valid."""
+    errors = []
+    if '://' not in uri:
+        errors.append('missing URI scheme')
+        return errors
+    scheme = uri.split('://')[0].lower()
+
+    if scheme in ('https', 'http'):
+        parsed = urlparse(uri)
+        if not parsed.netloc:
+            errors.append('missing host in URL')
+
+    elif scheme == 'isbn':
+        raw = uri.replace('isbn://', '').split(';')[0]
+        digits = raw.replace('-', '').replace(' ', '')
+        if len(digits) == 13:
+            if not _isbn13_valid(digits):
+                errors.append('invalid ISBN-13 checksum')
+        elif len(digits) == 10:
+            if not _isbn10_valid(digits):
+                errors.append('invalid ISBN-10 checksum')
+        else:
+            errors.append(f'invalid ISBN length: {len(digits)} (expected 10 or 13)')
+
+    elif scheme == 'doi':
+        doi = uri.replace('doi://', '')
+        if not re.match(r'^10\.\d{4,}/\S+', doi):
+            errors.append('DOI must match 10.XXXX/... format')
+
+    elif scheme == 'arxiv':
+        arxiv_id = uri.replace('arxiv://', '')
+        if not (re.match(r'^\d{4}\.\d{4,5}(v\d+)?$', arxiv_id) or
+                re.match(r'^[a-z][a-z\-]*(\.[A-Z]{2})?/\d{7}$', arxiv_id)):
+            errors.append(f'invalid arXiv ID format: {arxiv_id!r}')
+
+    elif scheme == 'yt':
+        meta = parse_yt_uri(uri)
+        vid = meta.get('video_id', '')
+        if len(vid) != 11:
+            errors.append(f'YouTube video ID must be 11 chars, got {len(vid)!r}')
+
+    elif scheme == 'q3n':
+        path = uri.replace('q3n://', '').split(';')[0].strip()
+        if not path:
+            errors.append('q3n URI must have a non-empty path')
+
+    elif scheme == 'file':
+        path = urlparse(uri).path
+        if not path:
+            errors.append('file URI must have a non-empty path')
+
+    return errors
+
+
 def resolve_uri(uri_data):
     """Return a human-readable source attribution string."""
     scheme = uri_data.get('scheme', '')
@@ -263,6 +341,9 @@ class Q3NEntry:
             'meta': meta,
         }
         return resolve_uri(uri_data)
+
+    def validate(self) -> list:
+        return validate_uri(self.uri)
 
     def __repr__(self):
         preview = self.quote[:50] + '...' if len(self.quote) > 50 else self.quote
