@@ -117,6 +117,7 @@ QGroupBox::title {
 }
 """
 
+from core import __version__
 from core.q3n import (Q3NEntry, parse_file, serialize_file, export_file,
                       export_json, export_markdown, export_plaintext,
                       generate_index, import_json)
@@ -604,7 +605,7 @@ class MainWindow(QMainWindow):
     def _show_about(self):
         QMessageBox.about(self, "About Q3N Manager",
             "<h2>Q3N Manager</h2>"
-            "<p>Version 1.0.0</p>"
+            f"<p>Version {__version__}</p>"
             "<p>A graphical browser and editor for Q3N "
             "(Quote Triple-Slash Notation) files.</p>"
             "<p>Q3N is a plain-text file format for storing "

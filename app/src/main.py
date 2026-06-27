@@ -18,11 +18,13 @@ if str(_repo_root) not in sys.path:
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import Qt
 
+from core import __version__
+
 
 def main():
     app = QApplication(sys.argv)
     app.setApplicationName('Q3N')
-    app.setApplicationVersion('1.0.0')
+    app.setApplicationVersion(__version__)
     app.setOrganizationName('Q3N Project')
 
     args = sys.argv[1:]

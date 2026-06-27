@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 from setuptools import setup, find_packages
+from core import __version__
 
 setup(
     name='q3n',
-    version='1.0.0',
+    version=__version__,
     description='Quote Triple-Slash Notation — manage quoted text collections',
-
     author='Q3N Project',
     url='https://github.com/thuruht/q3n',
     packages=find_packages(include=['core', 'core.*', 'gui', 'gui.*']),
-    python_requires='>=3.8',
+    python_requires='>=3.9',
     install_requires=[
         'PySide6>=6.5',
     ],
@@ -22,8 +22,13 @@ setup(
         'Environment :: Console',
         'Environment :: X11 Applications :: Qt',
         'Intended Audience :: End Users/Desktop',
-        'License :: OSI Approved :: GNU Affero General Public License v3',
+        'License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
         'Topic :: Text Processing :: General',
         'Topic :: Office/Business :: News/Database',
     ],
