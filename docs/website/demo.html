@@ -224,6 +224,8 @@ function parseAndRender() {
   renderExport();
 }
 
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
 function renderCards(entries) {
   const container = document.getElementById('cards');
   if (!entries.length) {
@@ -231,12 +233,13 @@ function renderCards(entries) {
     return;
   }
   container.innerHTML = entries.map(e => {
-    const cls = SCHEME_COLORS[e.scheme] || '';
-    const preview = (e.quote || '').slice(0, 120).replace(/\n/g, ' ');
-    const tag = e.tag ? `<div class="entry-tag">🏷 ${e.tag}</div>` : '';
-    const uri = (e.uri || '').slice(0, 80) + (e.uri && e.uri.length > 80 ? '…' : '');
+    const cls = SCHEME_COLORS[e.scheme] || '';  // cls is key-lookup only — already safe
+    const preview = esc((e.quote || '').slice(0, 120).replace(/\n/g, ' '));
+    const tag = e.tag ? `<div class="entry-tag">🏷 ${esc(e.tag)}</div>` : '';
+    const uriRaw = (e.uri || '').slice(0, 80) + (e.uri && e.uri.length > 80 ? '…' : '');
+    const uri = esc(uriRaw);
     return `<div class="entry-card">
-      <span class="scheme-badge ${cls}">${e.scheme || '?'}</span>
+      <span class="scheme-badge ${cls}">${esc(e.scheme || '?')}</span>
       <div class="entry-uri">${uri}</div>
       ${tag}
       <div class="entry-quote">${preview}${(e.quote || '').length > 120 ? '…' : ''}</div>
