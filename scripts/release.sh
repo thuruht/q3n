@@ -93,7 +93,7 @@ _upload() {
     local file="$1"
     local name="$2"
     echo "==> Uploading $name..."
-    curl -sf -X POST \
+    curl -sf --http1.1 -X POST \
         -H "Authorization: Bearer $GITHUB_TOKEN" \
         -H "Content-Type: application/octet-stream" \
         --data-binary "@${file}" \
