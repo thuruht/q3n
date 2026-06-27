@@ -13,7 +13,9 @@ APPIMAGE="$BUILD_DIR/q3n-${VERSION}.AppImage"
 DEB="$REPO_ROOT/../q3n_${VERSION}-1_all.deb"
 TARBALL="$BUILD_DIR/q3n-${VERSION}.tar.gz"
 
-: "${GITHUB_TOKEN:?GITHUB_TOKEN env var is required}"
+if [ "$DRY_RUN" = false ]; then
+    : "${GITHUB_TOKEN:?GITHUB_TOKEN env var is required}"
+fi
 
 echo "==> Q3N Release v${VERSION}$([ "$DRY_RUN" = true ] && echo ' (DRY RUN)' || true)"
 
