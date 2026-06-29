@@ -28,6 +28,7 @@
 | Deploy to https://q3n.distorted.work | `(cf deploy, no commit)` |
 | GUI wizard OSM/GIS pages + clickable links in exports | `ae86a2c` |
 | ASCII banner in CLI + osm/geo/overpass in create/tutorial | `3fb7d99` |
+| Banner on website hero + version bump 1.1.0 → 1.1.1 | `(pending)` |
 
 ### OSM/GIS URI Schemes
 - `osm://node|way|relation|changeset/<id>` → `browse_url`, `api_url` in meta
@@ -44,6 +45,17 @@
 
 ### Website
 - `docs/website/index.html` + `demo.html` — 72px/56px logo `<img>` in page header (same `favicon.png`)
+
+### Banner on Website + Version 1.1.1
+
+**Version:** `1.1.0` → `1.1.1` in `core/__init__.py` and `debian/changelog`
+
+**Files changed:**
+- `web/src/App.tsx` — added `BANNER` constant (same art as CLI); rendered as `<pre className="hero__banner" aria-hidden="true">` at the top of the hero section
+- `web/src/App.css` — added `.hero__banner`: monospace font, `clamp(0.32rem, 0.85vw, 0.55rem)` font-size so it scales with viewport, accent orange at 75% opacity, `overflow-x: auto` for narrow screens, `inline-block` so it centers in the hero
+
+**Deployed:** `https://q3n.distorted.work`
+**Test result:** 160/160 passed (no regressions)
 
 ### ASCII Banner + CLI OSM/GIS Updates
 

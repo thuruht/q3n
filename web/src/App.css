@@ -130,6 +130,22 @@
 }
 .format__desc { font-size: 0.9rem; color: var(--c-muted); }
 
+/* ── Hero banner ──────────────────────────────────────────────────── */
+.hero__banner {
+  font-family: var(--font-mono);
+  font-size: clamp(0.32rem, 0.85vw, 0.55rem);
+  line-height: 1.15;
+  color: var(--c-accent);
+  opacity: 0.75;
+  white-space: pre;
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0;
+  text-align: left;
+  display: inline-block;
+  max-width: 100%;
+}
+
 /* ── Hero logo ────────────────────────────────────────────────────── */
 .hero__logo {
   width: 72px;
