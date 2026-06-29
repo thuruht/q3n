@@ -30,7 +30,7 @@ from core import __version__
 from core.q3n import (Q3NEntry, parse_file, parse, serialize_file,
                       export_file, export_json, export_markdown,
                       export_plaintext, generate_index, import_json,
-                      list_entries, detect)
+                      list_entries, detect, parse_scheme)
 from core.fortune import display_fortune, export_fortune
 
 USE_COLOR = sys.stdout.isatty()
@@ -83,6 +83,9 @@ SCHEME_COLORS = {
     'yt': red,
     'youtube': red,
     'spotify': green,
+    'osm': green,
+    'geo': green,
+    'overpass': green,
 }
 
 SCHEME_ICONS = {
@@ -98,7 +101,59 @@ SCHEME_ICONS = {
     'yt': '🎬',
     'youtube': '🎬',
     'spotify': '🎵',
+    'osm': '🗺️',
+    'geo': '🗺️',
+    'overpass': '🗺️',
 }
+
+BANNER = """\
+                                                                                                                                                     \
+
+     ###########################################################################################################################################
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+  #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+  #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+  #++++++++++++++++++++--------++++++++++++=-------+++++++++++++-------++++++++++++++--------+++++++++++-------------++++++--------++++-------++++#
+  #+++++++++++++++++++.@@@@@@@@-++++++++++:@@@@@@@@-++++++++++-.@@@@@@@*++++++++++==:@@@@@@@@-==+++++++.@@@@@@@@@@@@@.++++-@@@@@@@@.++-@@@@@@@-+++#
+  #+++++++++++++++++-.@@@@@@@@.++++++++++.@@@@@@@@@-+++++++++.@@@@@@@@@-+++++++++-###=@@@@@@@@+@:+++++-@@@@@@@@@@@@@@@.+++.@@@@@@@@@-+:@@@@@@@-+++#
+  #++++++++++++++++:@@@@@@@@@.+++++++++--@@@@@@@@.-+++++++++-@@@@@@@@@.+++++++++=@@@@@@@@@@@@@@@@=+++=-@@@@@@@@@@@@@@@@.+-@@@@@@@@@@-=@@@@@@@@-+++#
+  #+++++++++++++++:@......@@:+++++++++.@......@@.+++++++++-=-.....-@.-+++++++++--:...............--+=@:::::::::::......@-+.........+-+-.....@.++++#
+  #+++++++++++++--@@@@@@@@.-++++++++=.@@@@@@@@#:+++++++++.@@@@@@@@@.++++++++++-@@@@@@@@@@@@@@@@@@@@-+-@@@@@@@@@@@@@@@@@@-:@@@@@@@@@@@.@@@@@@@-++++#
+  #++++++++++++-@@@@@@@@@.+++++++++:@@@@@@@@@.=++++++++--@@@@@@@@--+++++++++++=@@@@@@@.----.@@@@@@@-++==========:@@@@@@@.@@@@@@@@@@@@@@@@@@@.+++++#
+  #++++++++++-*+----..@.-+++++++++-@:----.@@.+++++++++:@-----.@@.++++++++++++++----.@.+++++-:::::.@-++++-+*++++++----.@.=-----.----.@.----.@-+++++#
+  #+++++++++.@.----.@@.+++++++++-=-.----=@.-+++++++++:@.----.@@:+++++++++++++%----.@*:----.@+###**@-+++.@.----------.@.-@.---.@.---:@:---.@.++++++#
+  #+++++++=-@@@@@@@@@:+++++++++-@@@@@@@@@.+++++++++-#@@@@@@@@.=++++++++++++++-@@@@@@.@@@@@@@@@@@@@.+++-@@@@@@@@@@@@@@@-.@@@@@@@@@@@@@@@@@@@-++++++#
+  #++++++:@=----.@@.=++++++++-++----..@=-+++++++++-@-----.@@.++++++++++++++++@-----:@:---------.@@--+++------.@.----.@.@.---.@-@.-------.@=+++++++#
+  #+++++.@.----.@@.+++++++++.@.----.@@.+++++++++---.----:@:-++++++++++++++++++=-----:---------.@@..@.---------.-----:@:.----.@.@.-------.@-+++++++#
+  #+++-=@@@@@@@@.-+++++++++-@@@@@@@@@.+++++++++:@@@@@@@@@.+++++++++++++++++++=@@@@@@@@@@@@@@@@@@..@@@@@@@@@@@@@@@@@@@.@@@@@@@@-.@@@@@@@@@@-+++++++#
+  #++.@......@@.+++++++++-=-.....-@.-+++++++++:@......@@:+++++++++++++++++++++=.@.:......----.@.:@.................@@:......@.++........@.++++++++#
+  #+-@@@@@@@@*:+++++++++-@@@@@@@@@.++++++++++#@@@@@@@@.=++++++++++++++++++++++++-=@@@@@@@:----.@@@@@@@@@@@@@@@@@@@@::@@@@@@@@-+-@@@@@@@@@-++++++++#
+  #++--------=+++++++++++---------++++++++++++--------++++++++++++++++++++++++++++=-----:@@@@@@@.-----------------=++=-------+++---------+++++++++#
+  #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=------++++++++++++++++++++++++++++++++++++++++++++++++++#
+  #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+   ##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++##
+     ###########################################################################################################################################     \
+"""
+
+
+def _print_banner():
+    if not USE_COLOR:
+        print(BANNER)
+        return
+    for line in BANNER.split('\n'):
+        out = ''
+        for ch in line:
+            if ch == '@':
+                out += '\033[1;93m' + ch + '\033[0m'
+            elif ch in ('#', '+'):
+                out += '\033[2;33m' + ch + '\033[0m'
+            elif ch in ('.', '-', '=', ':', '*', '%'):
+                out += '\033[2m' + ch + '\033[0m'
+            else:
+                out += ch
+        print(out)
 
 
 def scheme_style(entry):
@@ -266,6 +321,9 @@ def cmd_create(args):
         ('arxiv://', 'arXiv paper'),
         ('yt://', 'YouTube video'),
         ('q3n://', 'Person / contact'),
+        ('osm://', 'OpenStreetMap object'),
+        ('geo:', 'Geographic coordinates'),
+        ('overpass://', 'Overpass API query'),
         ('custom', 'Custom URI'),
     ]
     print(f'  {bold("Step 1:")} Choose source type')
@@ -293,8 +351,11 @@ def cmd_create(args):
         'isbn://': 'ISBN;Title;Author;Year, e.g. isbn://978-3-16-148410-0',
         'doi://': 'DOI identifier, e.g. doi://10.1234/abcd.567',
         'arxiv://': 'arXiv ID, e.g. arxiv://2305.12345',
-        'yt://': 'YouTube video, e.g. yt://watch?v=dQw4w9WgXcQ',
+        'yt://': 'YouTube video, e.g. yt://dQw4w9WgXcQ',
         'q3n://': 'Person ref, e.g. q3n://@handle;email;Name',
+        'osm://': 'OSM object, e.g. osm://node/12345 or osm://way/67890',
+        'geo:': 'Coordinates, e.g. geo:51.5074,-0.1278 or geo:48.8566,2.3522?z=15',
+        'overpass://': 'Overpass query, e.g. overpass://node[amenity=cafe]',
         'custom': 'Any URI string',
     }
     print(f'    {dim(uri_help.get(scheme_prefix, ""))}')
@@ -348,8 +409,7 @@ def cmd_create(args):
     print(f'  {cyan(SYM["hdr"] * 40)}')
 
     # ── Summary ──
-    scheme_name = scheme_prefix.rstrip('://') if scheme_prefix != 'custom' else 'custom'
-    path_val = uri.split('://', 1)[1] if '://' in uri else uri
+    scheme_name, path_val = parse_scheme(uri)
     entry = Q3NEntry(uri, scheme_name, path_val, quote, tag)
 
     print(f'\n  {bold("Summary:")}')
@@ -430,8 +490,7 @@ def cmd_edit(args):
     else:
         quote = e.quote
 
-    scheme = uri.split('://')[0] if '://' in uri else ''
-    path_val = uri.split('://', 1)[1] if '://' in uri else uri
+    scheme, path_val = parse_scheme(uri)
     entries[idx] = Q3NEntry(uri, scheme, path_val, quote, tag)
     serialize_file(entries, args.file)
     print(f'  {green(SYM["check"])} Entry #{idx+1} updated')
@@ -795,16 +854,19 @@ Plain text strips all formatting.''')
     note('''
 Q3N supports many source types:
 
-  🌐 https://   Web pages
-  📄 file://    Local files (use #line=N for line refs)
-  📚 isbn://    Books (ISBN;Title;Author;Year)
-  📖 doi://     Academic papers
-  📋 arxiv://   arXiv papers
-  🎬 yt://      YouTube videos
-  👤 q3n://     Person references
+  🌐 https://      Web pages
+  📄 file://       Local files (use #line=N for line refs)
+  📚 isbn://       Books (ISBN;Title;Author;Year)
+  📖 doi://        Academic papers
+  📋 arxiv://      arXiv papers
+  🎬 yt://         YouTube videos
+  👤 q3n://        Person references
+  🗺️ osm://        OpenStreetMap objects (node/way/relation)
+  🗺️ geo:          Geographic coordinates (geo:lat,lon?z=zoom)
+  🗺️ overpass://   Overpass API queries
 
-Choose the right scheme, and Q3N will track domain, author,
-or other metadata automatically.''')
+Choose the right scheme and Q3N will track domain, author,
+coordinates, or other metadata automatically.''')
     if not wait():
         return 0
 
@@ -1091,6 +1153,8 @@ def main():
     fn = cmds.get(args.command)
     if fn:
         return fn(args)
+    _print_banner()
+    print(f'  {dim(f"q3n {__version__} — Quote Triple-Slash Notation")}\n')
     parser.print_help()
     return 0
 

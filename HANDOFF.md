@@ -27,6 +27,7 @@
 | Web migration + version bump 1.0.0 → 1.1.0 | `2e27b7e` |
 | Deploy to https://q3n.distorted.work | `(cf deploy, no commit)` |
 | GUI wizard OSM/GIS pages + clickable links in exports | `ae86a2c` |
+| ASCII banner in CLI + osm/geo/overpass in create/tutorial | `(pending)` |
 
 ### OSM/GIS URI Schemes
 - `osm://node|way|relation|changeset/<id>` → `browse_url`, `api_url` in meta
@@ -43,6 +44,13 @@
 
 ### Website
 - `docs/website/index.html` + `demo.html` — 72px/56px logo `<img>` in page header (same `favicon.png`)
+
+### ASCII Banner + CLI OSM/GIS Updates
+
+**Files changed:**
+- `tools/q3n` — added `BANNER` constant (user-supplied Q3N ASCII art) + `_print_banner()` with per-character ANSI coloring (`@` → bold bright yellow, `#`/`+` → dim yellow, `.`/`-`/`=` → dim); banner + version line shown when `q3n` is run with no subcommand; added `osm`, `geo`, `overpass` to `SCHEME_COLORS` and `SCHEME_ICONS`; added osm/geo/overpass to `cmd_create` scheme picker with help text; fixed `cmd_create` and `cmd_edit` to use `parse_scheme()` instead of manual `://` split (fixes geo: scheme assignment); added `parse_scheme` to import; updated `cmd_tutorial` URI schemes section with osm/geo/overpass entries
+
+**Test result:** 160/160 passed (no regressions)
 
 ### GUI Wizard OSM/GIS + Clickable Links
 
