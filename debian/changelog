@@ -1,3 +1,9 @@
+q3n (1.1.2-1) unstable; urgency=low
+
+  * Fix: install app/ plugins to /usr/lib/q3n/ so q3n run/cite work outside source tree
+
+ -- Q3N Project <thuruht@users.noreply.github.com>  Mon, 29 Jun 2026 12:00:00 +0000
+
 q3n (1.1.1-1) unstable; urgency=low
 
   * ASCII banner in CLI and website
