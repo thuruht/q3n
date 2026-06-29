@@ -15,7 +15,7 @@
 | 6 | Fortune Plugin (move FortuneOverlay → `app/plugins/fortune/`) | `aeee1cf` |
 
 | 7 | Citation Formatter (`format_citation()` + tests) | `10eb801` |
-| 8 | Citation Plugin Panel + `q3n cite` CLI alias | pending push |
+| 8 | Citation Plugin Panel + `q3n cite` CLI alias | `a81c100` |
 
 ## Sprint Complete ✓
 
@@ -32,7 +32,7 @@ Icon missing from: website favicon, .deb app menu, GUI titlebar.
 Check: `q3n.desktop` icon field, `/usr/share/pixmaps/`, `debian/rules` install step.
 
 ## Resume
-Base commit for next work: pending (Task 8 commit)
+Base commit for next work: `a81c100`
 
 ## Task 8 Detail
 
