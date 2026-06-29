@@ -26,6 +26,14 @@ _repo_root = Path(__file__).resolve().parent.parent
 if (_repo_root / 'core' / 'q3n.py').exists():
     sys.path.insert(0, str(_repo_root))
 
+
+def _find_app_root():
+    """Return the directory containing the app/ subtree, or None."""
+    for candidate in (Path(__file__).resolve().parent.parent, Path('/usr/lib/q3n')):
+        if (candidate / 'app' / 'src' / 'core' / 'plugin_manager.py').exists():
+            return candidate
+    return None
+
 from core import __version__
 from core.q3n import (Q3NEntry, parse_file, parse, serialize_file,
                       export_file, export_json, export_markdown,
@@ -958,9 +966,12 @@ def cmd_validate(args):
 
 
 def cmd_cite(args):
-    _repo_root_path = Path(__file__).resolve().parent.parent
-    if str(_repo_root_path) not in sys.path:
-        sys.path.insert(0, str(_repo_root_path))
+    app_root = _find_app_root()
+    if app_root is None:
+        print(red('Citation plugin unavailable: app/ not found'), file=sys.stderr)
+        return 1
+    if str(app_root) not in sys.path:
+        sys.path.insert(0, str(app_root))
     try:
         from app.plugins.cite.formatter import format_citation
         from app.plugins.cite import _run_standalone
@@ -978,13 +989,16 @@ def cmd_cite(args):
 
 
 def cmd_run(args):
-    _repo_root_path = Path(__file__).resolve().parent.parent
-    if str(_repo_root_path) not in sys.path:
-        sys.path.insert(0, str(_repo_root_path))
+    app_root = _find_app_root()
+    if app_root is None:
+        print(red('Plugin system unavailable: app/ not found in repo or /usr/lib/q3n/'), file=sys.stderr)
+        return 1
+    if str(app_root) not in sys.path:
+        sys.path.insert(0, str(app_root))
     try:
         from app.src.core.plugin_manager import PluginManager
     except ImportError:
-        print(red('app/ directory not found — plugin system unavailable'), file=sys.stderr)
+        print(red('Plugin system unavailable: could not import PluginManager'), file=sys.stderr)
         return 1
     pm = PluginManager()
     pm.discover()
