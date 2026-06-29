@@ -18,7 +18,7 @@
 
 | # | Task |
 |---|------|
-| 7 | Citation Formatter (`format_citation()` + tests) |
+| 7 | Citation Formatter (`format_citation()` + tests) | pending push |
 | 8 | Citation Plugin Panel + `q3n cite` CLI alias |
 
 ## Additional Pending Requests
@@ -34,7 +34,16 @@ Icon missing from: website favicon, .deb app menu, GUI titlebar.
 Check: `q3n.desktop` icon field, `/usr/share/pixmaps/`, `debian/rules` install step.
 
 ## Resume
-Base commit for Task 7: `aeee1cf`
+Base commit for Task 8: pending (Task 7 commit)
+
+## Task 7 Detail
+
+**Files changed:**
+- `app/plugins/cite/__init__.py` — created (empty, placeholder for Task 8)
+- `app/plugins/cite/formatter.py` — `format_citation(entry, style)` engine; MLA 9, APA 7, Chicago 17, BibTeX; scheme-dispatched helpers per style; graceful degradation for missing author (`[n.a.]`) and year (`n.d.`/`[n.d.]`)
+- `tests/test_cite.py` — 20 tests across all four styles and graceful-degradation cases; test assertion fixed (formatter replaces `_` with spaces in titles, so assertion checks for `'The Book'` not `'The_Book'`)
+
+**Test result:** 147/147 passed (no regressions)
 SDD ledger: `.superpowers/sdd/progress.md`
 Plan: `docs/superpowers/plans/2026-06-27-feature-sprint.md`
 
