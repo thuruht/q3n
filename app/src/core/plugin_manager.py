@@ -23,6 +23,8 @@ class PluginManager:
         self._actions = {}
         self._widgets = {}
         self._hooks = {}
+        self._panels = {}
+        self._standalones = {}
         self._plugins = []
         self._plugin_dirs = plugin_dirs or self._default_dirs()
 
@@ -78,6 +80,21 @@ class PluginManager:
         """Register a hook callback."""
         self._hooks.setdefault(hook_name, []).append(func)
 
+    def register_panel(self, name: str, widget_class: type) -> None:
+        self._panels[name] = widget_class
+
+    def register_standalone(self, name: str, func) -> None:
+        self._standalones[name] = func
+
+    def list_plugins(self) -> list:
+        return [(name, getattr(mod, 'PLUGIN_META', {})) for name, mod in self._plugins]
+
+    def run_standalone(self, name: str, entries, args) -> None:
+        func = self._standalones.get(name)
+        if func is None:
+            raise KeyError(f"No standalone plugin '{name}'")
+        func(entries, args)
+
     def get_action(self, name):
         return self._actions.get(name)
 
@@ -100,6 +117,10 @@ class PluginManager:
     @property
     def widget_classes(self):
         return dict(self._widgets)
+
+    @property
+    def panels(self):
+        return dict(self._panels)
 
     @property
     def hooks(self):

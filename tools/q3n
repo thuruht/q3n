@@ -895,6 +895,35 @@ def cmd_validate(args):
     return 1 if any_errors else 0
 
 
+def cmd_run(args):
+    _repo_root_path = Path(__file__).resolve().parent.parent
+    if str(_repo_root_path) not in sys.path:
+        sys.path.insert(0, str(_repo_root_path))
+    try:
+        from app.src.core.plugin_manager import PluginManager
+    except ImportError:
+        print(red('app/ directory not found — plugin system unavailable'), file=sys.stderr)
+        return 1
+    pm = PluginManager()
+    pm.discover()
+    entries = []
+    if args.file:
+        try:
+            entries = parse_file(Path(args.file))
+        except Exception as e:
+            print(red(f'Could not read {args.file}: {e}'), file=sys.stderr)
+            return 1
+    try:
+        pm.run_standalone(args.plugin, entries, args.plugin_args or [])
+    except KeyError:
+        print(red(f'Plugin not found: {args.plugin}'), file=sys.stderr)
+        available = [n for n, _ in pm.list_plugins() if n in pm._standalones]
+        if available:
+            print(f'Available standalone plugins: {", ".join(available)}')
+        return 1
+    return 0
+
+
 def cmd_init(args):
     path = Path(args.file)
     if path.exists():
@@ -995,6 +1024,12 @@ def main():
     p.add_argument('--filter-scheme', metavar='SCHEME',
                    help='Only show entries with this URI scheme (e.g. isbn, doi, q3n)')
 
+    # run
+    p = sub.add_parser('run', help='Run a plugin standalone')
+    p.add_argument('plugin', help='Plugin name')
+    p.add_argument('file', nargs='?', help='Q3N file to load')
+    p.add_argument('plugin_args', nargs='*', metavar='arg', help='Arguments for the plugin')
+
     # tutorial
     p = sub.add_parser('tutorial',
                        help='Interactive tutorial for first-time users')
@@ -1017,6 +1052,7 @@ def main():
         'index': cmd_index, 'init': cmd_init,
         'validate': cmd_validate,
         'fortune': cmd_fortune,
+        'run': cmd_run,
         'tutorial': cmd_tutorial, 'help': cmd_help,
     }
 

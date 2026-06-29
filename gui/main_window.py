@@ -5,7 +5,8 @@ from PySide6.QtWidgets import (QMainWindow, QSplitter, QListView, QWidget,
                                QPushButton, QLabel, QComboBox, QMenuBar,
                                QMenu, QFileDialog, QMessageBox, QStatusBar,
                                QStyledItemDelegate, QStyle, QApplication,
-                               QToolBar, QCheckBox, QDialog, QTextEdit)
+                               QToolBar, QCheckBox, QDialog, QTextEdit,
+                               QDockWidget, QTabWidget)
 from PySide6.QtCore import Qt, QSize, Signal, Slot
 from PySide6.QtGui import QAction, QPalette, QFont
 
@@ -220,6 +221,8 @@ class MainWindow(QMainWindow):
         self._file_path = None
         self._modified = False
         self._all_entries = []  # unfiltered master list
+        self._plugin_panels = {}
+        self._plugin_dock = None
         self._setup_ui()
         self._setup_menu()
         self._setup_toolbar()
@@ -342,6 +345,7 @@ class MainWindow(QMainWindow):
         self._tag_filter.set_tags(self._all_entries)
         self._detail_view.clear()
         self._status.showMessage(f"{len(entries)} entries loaded")
+        self._notify_plugins(self._all_entries)
 
     def _apply_filter(self):
         search = self._search_input.text().lower()
@@ -375,6 +379,7 @@ class MainWindow(QMainWindow):
         self._tag_filter.set_tags(self._all_entries)
         self._modified = True
         self._status.showMessage("Entry updated")
+        self._notify_plugins(self._all_entries)
 
     def _add_entry(self):
         wizard = EntryWizard(self)
@@ -601,6 +606,26 @@ class MainWindow(QMainWindow):
             self._status.showMessage(f"Index saved to {path}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save index:\n{e}")
+
+    def load_plugins(self, manager):
+        panels = manager.panels
+        if not panels:
+            return
+        tab_widget = QTabWidget()
+        for name, widget_class in panels.items():
+            widget = widget_class(self)
+            self._plugin_panels[name] = widget
+            tab_widget.addTab(widget, name.title())
+        dock = QDockWidget("Plugins", self)
+        dock.setWidget(tab_widget)
+        dock.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
+        self.addDockWidget(Qt.RightDockWidgetArea, dock)
+        self._plugin_dock = dock
+
+    def _notify_plugins(self, entries):
+        for widget in self._plugin_panels.values():
+            if hasattr(widget, 'set_entries'):
+                widget.set_entries(entries)
 
     def _show_about(self):
         QMessageBox.about(self, "About Q3N Manager",
