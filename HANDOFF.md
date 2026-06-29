@@ -28,7 +28,7 @@
 | Deploy to https://q3n.distorted.work | `(cf deploy, no commit)` |
 | GUI wizard OSM/GIS pages + clickable links in exports | `ae86a2c` |
 | ASCII banner in CLI + osm/geo/overpass in create/tutorial | `3fb7d99` |
-| Banner on website hero + version bump 1.1.0 → 1.1.1 | `(pending)` |
+| Banner on website hero + version bump 1.1.0 → 1.1.1 | `dfb31d7` |
 
 ### OSM/GIS URI Schemes
 - `osm://node|way|relation|changeset/<id>` → `browse_url`, `api_url` in meta
