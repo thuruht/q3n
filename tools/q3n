@@ -895,6 +895,26 @@ def cmd_validate(args):
     return 1 if any_errors else 0
 
 
+def cmd_cite(args):
+    _repo_root_path = Path(__file__).resolve().parent.parent
+    if str(_repo_root_path) not in sys.path:
+        sys.path.insert(0, str(_repo_root_path))
+    try:
+        from app.plugins.cite.formatter import format_citation
+        from app.plugins.cite import _run_standalone
+    except ImportError as e:
+        print(red(f'Citation plugin unavailable: {e}'), file=sys.stderr)
+        return 1
+    entries = parse_file(Path(args.file)) if args.file else []
+    plugin_args = ['--style', args.style]
+    if args.all_entries:
+        plugin_args.append('--all')
+    if args.entry is not None:
+        plugin_args += ['--entry', str(args.entry)]
+    _run_standalone(entries, plugin_args)
+    return 0
+
+
 def cmd_run(args):
     _repo_root_path = Path(__file__).resolve().parent.parent
     if str(_repo_root_path) not in sys.path:
@@ -1024,6 +1044,17 @@ def main():
     p.add_argument('--filter-scheme', metavar='SCHEME',
                    help='Only show entries with this URI scheme (e.g. isbn, doi, q3n)')
 
+    # cite
+    p = sub.add_parser('cite', help='Format entries as citations (MLA, APA, Chicago, BibTeX)')
+    p.add_argument('file', nargs='?', help='Q3N file')
+    p.add_argument('--style', default='apa',
+                   choices=['mla', 'apa', 'chicago', 'bibtex'],
+                   help='Citation style (default: apa)')
+    p.add_argument('--entry', type=int, default=None, metavar='N',
+                   help='1-based entry index (default: first)')
+    p.add_argument('--all', action='store_true', dest='all_entries',
+                   help='Print all entries')
+
     # run
     p = sub.add_parser('run', help='Run a plugin standalone')
     p.add_argument('plugin', help='Plugin name')
@@ -1052,6 +1083,7 @@ def main():
         'index': cmd_index, 'init': cmd_init,
         'validate': cmd_validate,
         'fortune': cmd_fortune,
+        'cite': cmd_cite,
         'run': cmd_run,
         'tutorial': cmd_tutorial, 'help': cmd_help,
     }

@@ -14,12 +14,10 @@
 | 5 | Meta-App Framework Extension (PluginManager + GUI dock + `q3n run`) | `a65699b` |
 | 6 | Fortune Plugin (move FortuneOverlay → `app/plugins/fortune/`) | `aeee1cf` |
 
-## Remaining Sprint Tasks
-
-| # | Task |
-|---|------|
 | 7 | Citation Formatter (`format_citation()` + tests) | `10eb801` |
-| 8 | Citation Plugin Panel + `q3n cite` CLI alias |
+| 8 | Citation Plugin Panel + `q3n cite` CLI alias | pending push |
+
+## Sprint Complete ✓
 
 ## Additional Pending Requests
 
@@ -34,7 +32,18 @@ Icon missing from: website favicon, .deb app menu, GUI titlebar.
 Check: `q3n.desktop` icon field, `/usr/share/pixmaps/`, `debian/rules` install step.
 
 ## Resume
-Base commit for Task 8: `10eb801`
+Base commit for next work: pending (Task 8 commit)
+
+## Task 8 Detail
+
+**Files changed:**
+- `app/plugins/cite/__init__.py` — `PLUGIN_META` + `register(manager)` (registers panel + standalone) + `_run_standalone` (argparse mini-parser for `--style`, `--entry`, `--all`)
+- `app/plugins/cite/panel.py` — `CitePanelWidget`: vertical splitter with entry list (top) and citation text box (bottom); style combo; Copy to clipboard button; `set_entries` populates list and auto-selects row 0
+- `tools/q3n` — `cmd_cite` function + `q3n cite [file] [--style] [--entry N] [--all]` subcommand
+
+**Smoke test:** `q3n cite examples/sample.q3n --style mla --all` prints 7 MLA citations; `--style bibtex --entry 2` prints BibTeX `@book` for the ISBN entry.
+
+**Test result:** 147/147 passed (no regressions)
 
 ## Task 7 Detail
 
