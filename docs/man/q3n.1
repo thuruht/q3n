@@ -1,7 +1,7 @@
 .\" Man page for q3n
 .\" Automatically generated
 
-.TH Q3N 1 "2026-06-25" "1.0" "Q3N Manual"
+.TH Q3N 1 "2026-06-29" "1.1.3" "Q3N Manual"
 
 .SH NAME
 q3n \- Quote Triple-Slash Notation CLI — manage quoted text collections
@@ -137,6 +137,74 @@ Create a new empty Q3N file with the \fB#!q3n-format\fR header.
 q3n init <file>
 .RE
 
+.SS fortune
+Display a random quote from a Q3N file or directory as an ASCII art fortune cookie.
+
+.B Usage:
+.RS
+q3n fortune [file_or_dir] [--no-art] [--filter-tag TAG] [--filter-scheme SCHEME]
+.RE
+
+.SS validate
+Validate all URIs in a Q3N file. Prints OK or an error per entry; exits with code 1 if any URIs are invalid.
+
+.B Usage:
+.RS
+q3n validate <file>
+.RE
+
+.SS cite
+Format entries as citations in a chosen style.
+
+.B Usage:
+.RS
+q3n cite <file> [--style mla|apa|chicago|bibtex] [--entry N] [--all]
+.RE
+
+.TP
+.B --style
+Citation style: \fBmla\fR (MLA 9, default: apa), \fBapa\fR (APA 7), \fBchicago\fR (Chicago 17), \fBbibtex\fR (BibTeX).
+.TP
+.B --entry N
+Format only the Nth entry (1-based).
+.TP
+.B --all
+Format all entries.
+
+.SS run
+Run a plugin's standalone function with an optional Q3N file.
+
+.B Usage:
+.RS
+q3n run <plugin> [file] [plugin-args...]
+.RE
+
+Available built-in plugins: \fBfortune\fR, \fBcite\fR.
+
+.SS config
+Show, edit, or install user configuration files.
+
+.B Usage:
+.RS
+q3n config [--show] [--edit] [--install] [--force]
+.RE
+
+.TP
+.B (no flags)
+Print the config file path and whether it exists, plus the active stylesheet.
+.TP
+.B --show
+Print all effective settings (defaults merged with the user file).
+.TP
+.B --edit
+Open \fBq3n.conf\fR in \fB$EDITOR\fR (or \fBnano\fR if unset). Creates the file first if it doesn't exist.
+.TP
+.B --install
+Copy the example \fBq3n.conf\fR and \fBstyle.qss\fR to \fB~/.config/q3n/\fR. Skips existing files.
+.TP
+.B --force
+Overwrite existing files when used with \fB--install\fR.
+
 .SS tutorial
 Display an interactive tutorial introducing the Q3N format and CLI commands.
 
@@ -204,6 +272,24 @@ arXiv preprint IDs.
 .B yt://
 YouTube video identifiers.
 .TP
+.B pubmed://
+PubMed article IDs (PMID).
+.TP
+.B orcid://
+Researcher ORCID iDs; format: \fBorcid://0000-0002-1825-0097\fR.
+.TP
+.B spotify://
+Spotify content; format: \fBspotify://track:ID\fR or \fBspotify://album:ID\fR.
+.TP
+.B osm://
+OpenStreetMap features; format: \fBosm://node|way|relation/<id>\fR.
+.TP
+.B geo:
+Geographic coordinates (RFC 5870, colon-only — no //); format: \fBgeo:<lat>,<lon>[?z=<zoom>]\fR.
+.TP
+.B overpass://
+Overpass API queries; format: \fBoverpass://<query>\fR.
+.TP
 .B q3n://
 Person references; format: \fBq3n://@handle;email;'Name'\fR.
 
@@ -229,6 +315,21 @@ $ q3n export my-quotes.q3n -o quotes.md -f md
 Search across all files:
 .RS
 $ q3n search "Stonewall" .
+.RE
+
+Validate all URIs:
+.RS
+$ q3n validate my-quotes.q3n
+.RE
+
+Format a citation:
+.RS
+$ q3n cite my-quotes.q3n --style bibtex --entry 1
+.RE
+
+Display a random fortune:
+.RS
+$ q3n fortune my-quotes.q3n
 .RE
 
 .SH ENVIRONMENT

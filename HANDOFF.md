@@ -87,6 +87,65 @@
 
 **Test result:** 160/160 passed (no regressions)
 
+## Post-Sprint v1.1.2 Changes
+
+**Version:** `1.1.1` → `1.1.2` in `core/__init__.py` and `debian/changelog`
+**Commit:** `6cf35fc`
+
+### Bug Fixes
+
+**`q3n run` / `q3n cite` fails when installed as .deb** (app/ directory not found):
+- `tools/q3n` — added `_find_app_root()`: checks repo root first, then `/usr/lib/q3n/`; updated `cmd_run` and `cmd_cite` to use it instead of hardcoded `Path(__file__).parent.parent`
+- `debian/rules` — added `find app -name '*.py'` install loop that copies `app/` tree to `debian/q3n/usr/lib/q3n/app/`
+
+**`q3n fortune` hangs scanning home directory** (list_entries called detect() on every file, detect() read entire file content for unrecognized extensions):
+- `core/q3n.py` — `detect()` now returns `False` immediately for files >1MB before content scanning
+- `core/q3n.py` — `list_entries()` now filters by `RECOGNIZED_EXTENSIONS` before calling `detect()` (extension-first; content scan only used for explicitly-specified single files)
+
+**`q3n run fortune` with no file launches empty GUI silently**:
+- `app/plugins/fortune/__init__.py` — `_run_standalone` now prints usage to stderr and exits 1 when entries list is empty
+
+**Release artifacts:**
+- `.deb` rebuilt and re-uploaded to GitHub Release v1.1.2
+- AppImage rebuilt and re-uploaded
+- `.tar.gz` rebuilt and re-uploaded
+
+## Post-Sprint v1.1.3 Changes
+
+**Version:** `1.1.2` → `1.1.3` in `core/__init__.py` and `debian/changelog` (pending)
+
+### GUI Updates
+
+**Plugin dock never appeared at startup** (load_plugins() existed on MainWindow but was never called):
+- `gui/app.py` — added `_find_app_root()` helper (same two-path check as tools/q3n); added plugin discovery and `win.load_plugins(pm)` call in `main()` after creating `MainWindow`
+
+**Inline URI validation missing from EntryDetailView**:
+- `gui/entry_view.py` — added `_validation_label` QLabel below URI row; added `_update_validation()` (green ✓ / red ⚠); connected `_uri_input.textChanged` → `_update_validation`; clears label in `clear()`
+
+**No way to bulk-validate URIs from GUI**:
+- `gui/main_window.py` — added `Tools > Validate URIs...` menu item; added `_validate_file()` method (validates all entries, shows summary dialog with per-entry error detail)
+
+### User Config & Theming
+- `core/config.py` — new INI config loader (`~/.config/q3n/q3n.conf`, XDG-aware, cached); keys: `scan_max_bytes`, `default_export_format`, `style_file`, `remember_last_file`, `extra_dirs`, `default_citation_style`
+- `core/q3n.py` — `detect()` reads `scan_max_bytes` from config (default 10MB, up from 1MB)
+- `gui/main_window.py` — stylesheet loaded via `_load_stylesheet()` (checks config `style_file`, then `~/.config/q3n/style.qss`, else built-in QSS); `_persist_last_file()` writes last open path; `open_path()` public method for startup restore
+- `gui/app.py` — reads `remember_last_file` on startup; calls `win.open_path(last)` if enabled; passes `extra_dirs` from config to `PluginManager`
+- `app/plugins/fortune/panel.py` — inline `setStyleSheet` removed; `setObjectName('fortune_quote')` / `setObjectName('fortune_attr')` used instead
+- `app/plugins/cite/panel.py` — inline `setStyleSheet` removed; `setObjectName('citation_box')`; `_apply_default_style()` reads `default_citation_style` from config on init
+- `tools/q3n` — `cmd_config` subcommand: bare prints paths; `--show` dumps effective config; `--edit` opens `$EDITOR`; `--install` copies examples; `--force` overwrites; `get_config()` imported at top; `default_export_format` and `default_citation_style` wired into argparse defaults; export format choices expanded to all 7
+- `examples/q3n.conf.example` — fully-commented config template with all keys
+- `examples/style.qss.example` — full built-in light theme with section comments, palette guide, plugin widget selectors explained, and complete dark theme block commented at bottom
+- `q3n.appdata.xml` — AppStream metadata installed to `/usr/share/metainfo/`
+
+### Documentation
+- `ARCHITECTURE.md` — full rewrite: added app/, plugins, validate_uri, GUI dock/inline validation, new CLI commands, all URI schemes
+- `CLAUDE.md` — updated lint paths, validate_uri API, full subcommand list (incl. config), test file table, export formats
+- `docs/format/specification.md` — added osm/geo/overpass schemes; bumped to v1.1.3
+- `docs/man/q3n.1` — added fortune/validate/cite/run/config sections; added new URI schemes; bumped version to 1.1.3
+- `tools/q3n` docstring — updated to list all 17 subcommands with full export format list
+- `PLAN.md` — marked Iteration 6 complete
+- `README.md` — already current from prior work
+
 ## Resume
 Base commit for next work: `a81c100`
 

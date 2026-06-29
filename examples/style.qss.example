@@ -1,0 +1,267 @@
+/*
+ * Q3N Manager — custom stylesheet
+ *
+ * Install location: ~/.config/q3n/style.qss
+ * (or set [gui] style_file = /path/to/your.qss in q3n.conf)
+ *
+ * This file is the full built-in light theme with comments.
+ * Edit it in place, or use it as a starting point for your own theme.
+ *
+ * Qt stylesheet syntax is similar to CSS with some differences:
+ *   - Widget types replace element selectors (QPushButton, QLabel, etc.)
+ *   - Pseudo-states use :: for sub-controls, : for states (:hover, :focus)
+ *   - Object names are matched with # (QLabel#fortune_quote)
+ *   - No calc(), no CSS variables — use find-and-replace for colour schemes
+ *
+ * Qt QSS reference: https://doc.qt.io/qt-6/stylesheet-reference.html
+ *
+ * To make a dark theme: replace the colour palette below and adjust
+ * backgrounds/borders throughout. A dark palette is included at the bottom
+ * as a commented example.
+ *
+ * Restart the Q3N Manager after saving changes.
+ */
+
+/* =========================================================================
+   COLOUR PALETTE (change these 8 values to re-theme the whole app)
+   =========================================================================
+   Accent blue:   #4a90d9   (focus rings, selected items, badges)
+   Selection bg:  #cce5ff   (list/menu highlight background)
+   Selection fg:  #003366   (list/menu highlight text)
+   Hover bg:      #f0f8ff   (list item hover)
+   Surface:       #fafafa   (window background)
+   Panel:         #f5f5f5   (toolbar, menubar)
+   Border:        #ddd      (default border colour)
+   Border dark:   #ccc      (input field borders)
+   Muted text:    #666      (status bar, secondary labels)
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   Window & main layout
+   ------------------------------------------------------------------------- */
+
+QMainWindow {
+    background-color: #fafafa;
+}
+
+QSplitter::handle {
+    background: #e0e0e0;
+    width: 2px;
+}
+
+/* -------------------------------------------------------------------------
+   Entry list
+   ------------------------------------------------------------------------- */
+
+QListView {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 2px;
+    font-size: 13px;
+}
+
+QListView::item:selected {
+    background-color: #cce5ff;
+    color: #003366;
+}
+
+QListView::item:hover {
+    background-color: #f0f8ff;
+}
+
+/* -------------------------------------------------------------------------
+   Input fields
+   ------------------------------------------------------------------------- */
+
+QLineEdit {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 4px 6px;
+    font-size: 13px;
+    background: white;
+}
+
+QLineEdit:focus {
+    border-color: #4a90d9;
+}
+
+QTextEdit {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 6px;
+    background: white;
+    font-size: 13px;
+}
+
+QComboBox {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 4px 6px;
+    font-size: 13px;
+    background: white;
+    min-width: 120px;
+}
+
+/* -------------------------------------------------------------------------
+   Buttons
+   ------------------------------------------------------------------------- */
+
+QPushButton {
+    border: 1px solid #bbb;
+    border-radius: 3px;
+    padding: 5px 14px;
+    font-size: 13px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #fcfcfc, stop:1 #eaeaea);
+}
+
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #ffffff, stop:1 #f0f0f0);
+    border-color: #999;
+}
+
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #ddd, stop:1 #ccc);
+}
+
+/* -------------------------------------------------------------------------
+   Menus & toolbars
+   ------------------------------------------------------------------------- */
+
+QMenuBar {
+    background: #f5f5f5;
+    border-bottom: 1px solid #ddd;
+    font-size: 13px;
+}
+
+QMenuBar::item:selected {
+    background: #cce5ff;
+}
+
+QMenu {
+    background: white;
+    border: 1px solid #ccc;
+    padding: 4px;
+}
+
+QMenu::item {
+    padding: 4px 24px;
+}
+
+QMenu::item:selected {
+    background: #cce5ff;
+}
+
+QToolBar {
+    border-bottom: 1px solid #ddd;
+    padding: 2px;
+    background: #f5f5f5;
+    spacing: 4px;
+}
+
+QStatusBar {
+    border-top: 1px solid #ddd;
+    font-size: 12px;
+    color: #666;
+}
+
+/* -------------------------------------------------------------------------
+   Group boxes
+   ------------------------------------------------------------------------- */
+
+QGroupBox {
+    font-weight: bold;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 8px;
+    padding-top: 16px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 6px;
+}
+
+/* =========================================================================
+   PLUGIN WIDGETS
+   These use Qt object names so they can be targeted precisely.
+   ========================================================================= */
+
+/* Fortune panel — quote body text */
+QLabel#fortune_quote {
+    font-size: 13px;
+    color: #222;
+}
+
+/* Fortune panel — attribution / source line */
+QLabel#fortune_attr {
+    font-size: 11px;
+    color: #888;
+}
+
+/* Cite panel — citation output box */
+QTextEdit#citation_box {
+    font-family: monospace;
+    font-size: 12px;
+}
+
+
+/* =========================================================================
+   DARK THEME EXAMPLE
+   Uncomment and adjust this block, then remove or comment out the light
+   theme sections above.
+   =========================================================================
+
+QMainWindow, QDialog { background-color: #1e1e1e; color: #d4d4d4; }
+
+QListView {
+    background-color: #252526;
+    border: 1px solid #3c3c3c;
+    border-radius: 4px;
+    color: #d4d4d4;
+    font-size: 13px;
+}
+QListView::item:selected { background-color: #094771; color: #ffffff; }
+QListView::item:hover    { background-color: #2a2d2e; }
+
+QLineEdit, QTextEdit, QComboBox {
+    background: #3c3c3c;
+    border: 1px solid #555;
+    border-radius: 3px;
+    color: #d4d4d4;
+    font-size: 13px;
+}
+QLineEdit:focus  { border-color: #007acc; }
+QTextEdit        { padding: 6px; }
+
+QPushButton {
+    background: #3a3a3a;
+    border: 1px solid #555;
+    border-radius: 3px;
+    color: #d4d4d4;
+    padding: 5px 14px;
+    font-size: 13px;
+}
+QPushButton:hover   { background: #4a4a4a; border-color: #777; }
+QPushButton:pressed { background: #2a2a2a; }
+
+QMenuBar            { background: #2d2d2d; border-bottom: 1px solid #3c3c3c; color: #d4d4d4; font-size: 13px; }
+QMenuBar::item:selected { background: #094771; }
+QMenu               { background: #252526; border: 1px solid #3c3c3c; }
+QMenu::item         { padding: 4px 24px; color: #d4d4d4; }
+QMenu::item:selected { background: #094771; }
+QToolBar            { background: #2d2d2d; border-bottom: 1px solid #3c3c3c; }
+QStatusBar          { border-top: 1px solid #3c3c3c; color: #888; font-size: 12px; }
+QSplitter::handle   { background: #3c3c3c; width: 2px; }
+QGroupBox           { border: 1px solid #3c3c3c; color: #d4d4d4; font-weight: bold; margin-top: 8px; padding-top: 16px; border-radius: 4px; }
+QGroupBox::title    { subcontrol-origin: margin; left: 10px; padding: 0 6px; }
+
+QLabel#fortune_quote { font-size: 13px; color: #d4d4d4; }
+QLabel#fortune_attr  { font-size: 11px; color: #858585; }
+QTextEdit#citation_box { font-family: monospace; font-size: 12px; background: #252526; }
+
+   ========================================================================= */

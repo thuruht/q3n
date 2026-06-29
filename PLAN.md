@@ -84,15 +84,17 @@ Tasks:
 
 ---
 
-## Iteration 6 — Cloudflare Worker Download Site
+## Iteration 6 — Cloudflare Worker Download Site ✓ DONE
 
 **Goal:** Ship a Vite + React Cloudflare Worker (`web/`) that serves a download page for Q3N packages (.deb, .tar.gz, .AppImage, future Flatpak). Assets are linked from GitHub Releases.
 
 Tasks:
-- [ ] Scaffold `web/` from the vite-react-template pattern (Vite + React + `@cloudflare/vite-plugin`)
-- [ ] `wrangler.toml` with `name = "q3n-site"` and `compatibility_date`
-- [ ] React download page: .deb, .tar.gz, .AppImage, Flatpak (coming soon)
-- [ ] CI job to `wrangler deploy` on push to main
+- [x] Scaffold `web/` from the vite-react-template pattern (Vite + React + `@cloudflare/vite-plugin`)
+- [x] `wrangler.toml` with `name = "q3n-site"` and `compatibility_date`
+- [x] React download page: .deb, .tar.gz, .AppImage; full feature sections; interactive browser demo
+- [x] Deployed to https://q3n.distorted.work (CF Workers, custom domain)
+
+Note: CI auto-deploy via wrangler is not yet wired; deployments are currently manual.
 
 ---
 

@@ -27,11 +27,24 @@ def main():
             sys.path.insert(0, str(app_root))
         try:
             from app.src.core.plugin_manager import PluginManager
-            pm = PluginManager()
+            from core.config import get_extra_plugin_dirs
+            pm = PluginManager(plugin_dirs=None)
+            for extra in get_extra_plugin_dirs():
+                if extra not in pm._plugin_dirs:
+                    pm._plugin_dirs.append(extra)
             pm.discover()
             win.load_plugins(pm)
         except Exception:
             pass
+
+    try:
+        from core.config import get_config, load_last_file
+        if get_config()['gui'].getboolean('remember_last_file', False):
+            last = load_last_file()
+            if last:
+                win.open_path(last)
+    except Exception:
+        pass
 
     win.show()
     return app.exec()

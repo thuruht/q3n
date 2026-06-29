@@ -3,16 +3,23 @@
 q3n — CLI for Q3N (Quote Triple-Slash Notation) files.
 
 Usage:
-    q3n show <file> [n]       Display entries (with optional entry number)
-    q3n list [dir]            List entries across files
-    q3n create <file>         Interactive entry creation (wizard)
-    q3n edit <file> [n]       Edit an entry interactively
-    q3n search <pattern> [dir] Search entry text (regex)
-    q3n stats [dir]           Show collection statistics
-    q3n export <file> -o <path> -f <fmt>  Export (txt|json|md|q3n)
-    q3n import <src> <dest>   Import entries from another file
-    q3n index [dir]           Generate a markdown index
-    q3n init <file>           Create a new empty Q3N file
+    q3n show <file> [n]                   Display entries
+    q3n list [dir]                        List entries across files
+    q3n create <file>                     Interactive entry creation (wizard)
+    q3n edit <file> [n]                   Edit an entry interactively
+    q3n search <pattern> [dir]            Search entry text (regex)
+    q3n stats [dir]                       Show collection statistics
+    q3n export <file> -o <path> -f <fmt>  Export (q3n|json|md|html|txt|index|fortune)
+    q3n import <src> <dest>               Import entries from another file
+    q3n index [dir]                       Generate a markdown index
+    q3n init <file>                       Create a new empty Q3N file
+    q3n fortune [file_or_dir]             Display random quote as fortune cookie
+    q3n validate <file>                   Validate URIs in a Q3N file
+    q3n cite <file> [--style STYLE]       Format entries as citations
+    q3n run <plugin> [file]               Run a plugin standalone
+    q3n config [--show|--edit|--install]  Show, edit or install user config files
+    q3n tutorial                          Interactive tutorial
+    q3n help [command]                    Show man page or command help
 """
 import sys
 import os
@@ -40,6 +47,7 @@ from core.q3n import (Q3NEntry, parse_file, parse, serialize_file,
                       export_plaintext, generate_index, import_json,
                       list_entries, detect, parse_scheme)
 from core.fortune import display_fortune, export_fortune
+from core.config import get_config
 
 USE_COLOR = sys.stdout.isatty()
 
@@ -1034,10 +1042,77 @@ def cmd_init(args):
     return 0
 
 
+def cmd_config(args):
+    from core.config import config_path, get_config, get_style_file
+    cfg_path = config_path()
+
+    if getattr(args, 'edit', False):
+        editor = os.environ.get('VISUAL') or os.environ.get('EDITOR') or 'nano'
+        if not cfg_path.exists():
+            # install first so there's something to edit
+            import shutil
+            repo_root = Path(__file__).resolve().parent.parent
+            conf_example = repo_root / 'examples' / 'q3n.conf.example'
+            cfg_path.parent.mkdir(parents=True, exist_ok=True)
+            if conf_example.exists():
+                shutil.copy(conf_example, cfg_path)
+            else:
+                cfg_path.write_text('')
+        os.execlp(editor, editor, str(cfg_path))
+        return 0  # unreachable — execlp replaces the process
+
+    if getattr(args, 'show', False):
+        cfg = get_config()
+        for section in cfg.sections():
+            print(f'\n[{section}]')
+            for key, val in cfg.items(section):
+                print(f'  {key} = {val}')
+        return 0
+
+    if getattr(args, 'install', False):
+        import shutil
+        repo_root = Path(__file__).resolve().parent.parent
+        conf_example = repo_root / 'examples' / 'q3n.conf.example'
+        qss_example = repo_root / 'examples' / 'style.qss.example'
+        cfg_dir = cfg_path.parent
+        cfg_dir.mkdir(parents=True, exist_ok=True)
+
+        installed = []
+        for src, dst in ((conf_example, cfg_path),
+                         (qss_example, cfg_dir / 'style.qss')):
+            if not src.exists():
+                print(f'  {yellow(SYM["cross"])} Example not found: {src}')
+                continue
+            if dst.exists() and not getattr(args, 'force', False):
+                print(f'  {yellow(SYM["cross"])} Already exists (use --force to overwrite): {dst}')
+                continue
+            shutil.copy(src, dst)
+            print(f'  {green(SYM["check"])} Installed {bold(str(dst))}')
+            installed.append(dst)
+
+        if installed:
+            print(f'\n  Edit {bold(str(cfg_path))} to customise behaviour.')
+            print(f'  Edit {bold(str(cfg_dir / "style.qss"))} to customise the GUI theme.')
+        return 0
+
+    # Default: print paths
+    print(f'  Config file : {bold(str(cfg_path))}')
+    print(f'  Exists      : {green("yes") if cfg_path.exists() else yellow("no")}')
+    style = get_style_file()
+    print(f'  Style file  : {bold(str(style)) if style else dim("(using built-in theme)")}')
+    print(f'\n  Run {bold("q3n config --install")} to copy example files to the config directory.')
+    print(f'  Run {bold("q3n config --show")} to print effective settings.')
+    return 0
+
+
 # ── Main dispatch ─────────────────────────────────────────────────────
 
 def main():
     import argparse
+    _cfg = get_config()
+    _default_export_fmt = _cfg['core'].get('default_export_format', 'q3n')
+    _default_cite_style = _cfg['plugins'].get('default_citation_style', 'apa')
+
     parser = argparse.ArgumentParser(
         description='Q3N — Quote Triple-Slash Notation CLI',
         formatter_class=argparse.RawTextHelpFormatter)
@@ -1080,9 +1155,9 @@ def main():
     p = sub.add_parser('export', help='Export entries')
     p.add_argument('file', help='Source Q3N file')
     p.add_argument('-o', '--output', help='Output file')
-    p.add_argument('-f', '--format', default='txt',
-                   choices=['q3n', 'json', 'md', 'txt'],
-                   help='Export format')
+    p.add_argument('-f', '--format', default=_default_export_fmt,
+                   choices=['q3n', 'json', 'md', 'html', 'txt', 'index', 'fortune'],
+                   help=f'Export format (default: {_default_export_fmt})')
 
     # import
     p = sub.add_parser('import', help='Import entries')
@@ -1123,9 +1198,9 @@ def main():
     # cite
     p = sub.add_parser('cite', help='Format entries as citations (MLA, APA, Chicago, BibTeX)')
     p.add_argument('file', nargs='?', help='Q3N file')
-    p.add_argument('--style', default='apa',
+    p.add_argument('--style', default=_default_cite_style,
                    choices=['mla', 'apa', 'chicago', 'bibtex'],
-                   help='Citation style (default: apa)')
+                   help=f'Citation style (default: {_default_cite_style})')
     p.add_argument('--entry', type=int, default=None, metavar='N',
                    help='1-based entry index (default: first)')
     p.add_argument('--all', action='store_true', dest='all_entries',
@@ -1136,6 +1211,17 @@ def main():
     p.add_argument('plugin', help='Plugin name')
     p.add_argument('file', nargs='?', help='Q3N file to load')
     p.add_argument('plugin_args', nargs='*', metavar='arg', help='Arguments for the plugin')
+
+    # config
+    p = sub.add_parser('config', help='Show, edit or install user config files')
+    p.add_argument('--show', action='store_true',
+                   help='Print effective configuration')
+    p.add_argument('--edit', action='store_true',
+                   help='Open q3n.conf in $EDITOR (creates it first if missing)')
+    p.add_argument('--install', action='store_true',
+                   help='Copy example q3n.conf and style.qss to ~/.config/q3n/')
+    p.add_argument('--force', action='store_true',
+                   help='Overwrite existing files when used with --install')
 
     # tutorial
     p = sub.add_parser('tutorial',
@@ -1161,6 +1247,7 @@ def main():
         'fortune': cmd_fortune,
         'cite': cmd_cite,
         'run': cmd_run,
+        'config': cmd_config,
         'tutorial': cmd_tutorial, 'help': cmd_help,
     }
 

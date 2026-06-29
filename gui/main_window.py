@@ -118,7 +118,32 @@ QGroupBox::title {
     left: 10px;
     padding: 0 6px;
 }
+/* Plugin panel widgets — overridable via style.qss */
+QLabel#fortune_quote {
+    font-size: 13px;
+    color: #222;
+}
+QLabel#fortune_attr {
+    font-size: 11px;
+    color: #888;
+}
+QTextEdit#citation_box {
+    font-family: monospace;
+    font-size: 12px;
+}
 """
+
+
+def _load_stylesheet():
+    from core.config import get_style_file
+    style_file = get_style_file()
+    if style_file:
+        try:
+            return style_file.read_text()
+        except Exception:
+            pass
+    return QSS
+
 
 from core import __version__
 from core.q3n import (Q3NEntry, parse_file, serialize_file, export_file,
@@ -219,7 +244,7 @@ class PreviewDialog(QDialog):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setStyleSheet(QSS)
+        self.setStyleSheet(_load_stylesheet())
         self._file_path = None
         self._modified = False
         if _ICON_PATH.exists():
@@ -446,6 +471,7 @@ class MainWindow(QMainWindow):
             self._load_entries(entries)
             self.setWindowTitle(f"Q3N Manager - {self._file_path.name}")
             self._status.showMessage(f"Opened {path}")
+            self._persist_last_file(self._file_path)
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to open file:\n{e}")
 
@@ -472,8 +498,29 @@ class MainWindow(QMainWindow):
             self._modified = False
             self.setWindowTitle(f"Q3N Manager - {path.name}")
             self._status.showMessage(f"Saved {len(self._all_entries)} entries to {path}")
+            self._persist_last_file(path)
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save file:\n{e}")
+
+    def _persist_last_file(self, path):
+        try:
+            from core.config import get_config, save_last_file
+            if get_config()['gui'].getboolean('remember_last_file', False):
+                save_last_file(path)
+        except Exception:
+            pass
+
+    def open_path(self, path):
+        try:
+            entries = parse_file(path)
+            self._file_path = Path(path)
+            self._modified = False
+            self._load_entries(entries)
+            self.setWindowTitle(f"Q3N Manager - {self._file_path.name}")
+            self._status.showMessage(f"Opened {path}")
+            self._persist_last_file(self._file_path)
+        except Exception:
+            pass
 
     def _confirm_save(self):
         if not self._modified:

@@ -65,3 +65,8 @@ build/
 # Memory / session files
 .remember/
 q3n.egg-info/
+
+# Personal notes / private data
+piglang
+piglanguage.q3n
+docs/superpowers/

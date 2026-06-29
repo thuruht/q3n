@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>work.distorted.q3n</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>AGPL-3.0-only</project_license>
+  <name>Q3N Manager</name>
+  <summary>Browse and edit Q3N quote collections</summary>
+  <description>
+    <p>
+      Q3N (Quote Triple-Slash Notation) is a plain-text format and toolchain
+      for storing quotations and citations with source URIs. The Q3N Manager
+      provides a graphical interface for browsing, editing, searching, and
+      exporting your quote collections.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>Create and edit Q3N files with a multi-page entry wizard</li>
+      <li>Browse and search entries by tag, scheme, or text</li>
+      <li>Inline URI validation with per-scheme rules (ISBN checksum, DOI format, arXiv ID, etc.)</li>
+      <li>Export to JSON, Markdown, HTML, Plain Text, Markdown Index, or Fortune format</li>
+      <li>Plugin system: fortune cookie sidebar, citation formatter (MLA/APA/Chicago/BibTeX)</li>
+      <li>Supports 14 URI schemes: https, isbn, doi, arxiv, pubmed, yt, spotify, orcid, q3n, file, osm, geo, overpass</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">q3n.desktop</launchable>
+  <url type="homepage">https://q3n.distorted.work</url>
+  <url type="bugtracker">https://github.com/thuruht/q3n/issues</url>
+  <url type="vcs-browser">https://github.com/thuruht/q3n</url>
+  <releases>
+    <release version="1.1.3" date="2026-06-29">
+      <description>
+        <p>GUI improvements: plugin dock now loads on startup, inline URI validation in entry editor,
+        Tools &gt; Validate URIs menu. Bug fixes: q3n fortune no longer scans the entire filesystem;
+        q3n run/cite work correctly when installed as a .deb package.</p>
+      </description>
+    </release>
+    <release version="1.1.2" date="2026-06-29">
+      <description>
+        <p>Fixed q3n run/cite failing when installed as a .deb package. Fixed q3n fortune
+        scanning the home directory slowly. Added empty-entries guard to q3n run fortune.</p>
+      </description>
+    </release>
+    <release version="1.1.1" date="2026-06-27">
+      <description>
+        <p>Added ASCII banner to CLI and website hero. Minor refinements.</p>
+      </description>
+    </release>
+    <release version="1.1.0" date="2026-06-27">
+      <description>
+        <p>Added OSM/GIS URI schemes (osm://, geo:, overpass://). Launched download
+        site at q3n.distorted.work. GUI wizard supports new map source types.</p>
+      </description>
+    </release>
+    <release version="1.0.0" date="2026-06-27">
+      <description>
+        <p>Initial public release. Core Q3N format, CLI, PySide6 GUI, plugin system
+        with fortune and citation plugins, schema validation, JavaScript parser.</p>
+      </description>
+    </release>
+  </releases>
+  <content_rating type="oars-1.1"/>
+  <keywords>
+    <keyword>quote</keyword>
+    <keyword>citation</keyword>
+    <keyword>notes</keyword>
+    <keyword>reference</keyword>
+    <keyword>plain text</keyword>
+  </keywords>
+  <categories>
+    <category>Office</category>
+    <category>Database</category>
+    <category>TextTools</category>
+  </categories>
+</component>

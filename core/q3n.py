@@ -618,7 +618,9 @@ def detect(path):
     if p.suffix in RECOGNIZED_EXTENSIONS:
         return True
     try:
-        if p.stat().st_size > 1_000_000:
+        from core.config import get_config
+        max_bytes = get_config()['core'].getint('scan_max_bytes', 10_485_760)
+        if p.stat().st_size > max_bytes:
             return False
         text = p.read_text(encoding='utf-8')
         if text.startswith('#!q3n-format'):

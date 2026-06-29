@@ -8,6 +8,7 @@ setup(
     description='Quote Triple-Slash Notation — manage quoted text collections',
     author='Q3N Project',
     url='https://github.com/thuruht/q3n',
+    license='AGPL-3.0-only',
     packages=find_packages(include=['core', 'core.*', 'gui', 'gui.*']),
     python_requires='>=3.9',
     install_requires=[
@@ -22,7 +23,6 @@ setup(
         'Environment :: Console',
         'Environment :: X11 Applications :: Qt',
         'Intended Audience :: End Users/Desktop',
-        'License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',

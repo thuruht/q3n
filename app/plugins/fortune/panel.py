@@ -17,12 +17,12 @@ class FortunePanelWidget(QWidget):
         layout.setSpacing(6)
 
         self._quote_label = QLabel('No file open.')
+        self._quote_label.setObjectName('fortune_quote')
         self._quote_label.setWordWrap(True)
-        self._quote_label.setStyleSheet('font-size: 13px; color: #222;')
         layout.addWidget(self._quote_label)
 
         self._attr_label = QLabel('')
-        self._attr_label.setStyleSheet('font-size: 11px; color: #888;')
+        self._attr_label.setObjectName('fortune_attr')
         layout.addWidget(self._attr_label)
 
         layout.addStretch()

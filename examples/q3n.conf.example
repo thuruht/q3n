@@ -1,0 +1,82 @@
+# Q3N configuration file
+#
+# Install location: ~/.config/q3n/q3n.conf
+#   (or $XDG_CONFIG_HOME/q3n/q3n.conf if XDG_CONFIG_HOME is set)
+#
+# Copy this file there to activate it:
+#   mkdir -p ~/.config/q3n
+#   cp examples/q3n.conf.example ~/.config/q3n/q3n.conf
+#
+# Changes to [core] and [plugins] take effect immediately on next CLI run.
+# Changes to [gui] require restarting the Q3N Manager.
+
+# ---------------------------------------------------------------------------
+[core]
+# ---------------------------------------------------------------------------
+
+# Maximum file size (in bytes) for content-based Q3N detection.
+#
+# When Q3N scans a directory, files with a recognised extension (.q3n, .q3nt,
+# .quotation, .quotes) are opened immediately. Files with OTHER extensions are
+# only read to check for Q3N content if they are smaller than this limit.
+# Raise it if you store large Q3N files without a recognised extension.
+# Lower it to make directory scans faster on machines with many large files.
+#
+# Default: 10485760  (10 MB)
+# Valid values: any positive integer (bytes)
+scan_max_bytes = 10485760
+
+# Default export format used by `q3n export` when -f / --format is not given.
+#
+# Default: q3n
+# Valid values: q3n  json  md  html  txt  index  fortune
+default_export_format = q3n
+
+# ---------------------------------------------------------------------------
+[gui]
+# ---------------------------------------------------------------------------
+
+# Path to a custom Qt stylesheet (.qss file) for the Q3N Manager GUI.
+#
+# If this key is empty OR omitted, Q3N looks for ~/.config/q3n/style.qss
+# automatically. If that file also doesn't exist, the built-in light theme
+# is used. Set this key to point at a stylesheet anywhere on your system.
+#
+# Restart the Q3N Manager after changing this.
+#
+# Default: (empty — uses ~/.config/q3n/style.qss if present)
+# Example:
+# style_file = /home/you/.config/q3n/style.qss
+style_file =
+
+# Reopen the last used file automatically when the Q3N Manager starts.
+# The path is stored in ~/.local/state/q3n/last_file (XDG_STATE_HOME).
+# It is updated every time you open or save a file.
+#
+# Default: false
+# Valid values: true  false
+remember_last_file = false
+
+# ---------------------------------------------------------------------------
+[plugins]
+# ---------------------------------------------------------------------------
+
+# Extra directories to search for plugins, in addition to the built-in
+# app/plugins/ directory. Separate multiple paths with commas.
+#
+# Plugin packages in these directories are loaded at startup. A plugin is a
+# Python package (directory with __init__.py) that exports PLUGIN_META and
+# register(manager). See app/plugins/fortune/ for a worked example.
+#
+# Default: (empty — only built-in plugins are loaded)
+# Example:
+# extra_dirs = /home/you/.local/share/q3n/plugins, /opt/my-q3n-plugins
+extra_dirs =
+
+# Default citation style for `q3n cite` and the Cite panel in the GUI.
+# The GUI pre-selects this style in the style dropdown.
+# The CLI uses it when --style is not specified.
+#
+# Default: apa
+# Valid values: mla  apa  chicago  bibtex
+default_citation_style = apa

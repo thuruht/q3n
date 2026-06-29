@@ -15,6 +15,7 @@ class CitePanelWidget(QWidget):
         super().__init__(parent)
         self._entries = []
         self._setup_ui()
+        self._apply_default_style()
 
     def _setup_ui(self):
         layout = QVBoxLayout(self)
@@ -38,8 +39,8 @@ class CitePanelWidget(QWidget):
         splitter.addWidget(self._entry_list)
 
         self._citation_box = QTextEdit()
+        self._citation_box.setObjectName('citation_box')
         self._citation_box.setReadOnly(True)
-        self._citation_box.setStyleSheet('font-family: monospace; font-size: 12px;')
         splitter.addWidget(self._citation_box)
 
         layout.addWidget(splitter, 1)
@@ -57,6 +58,16 @@ class CitePanelWidget(QWidget):
         if entries:
             self._entry_list.setCurrentRow(0)
         self._refresh()
+
+    def _apply_default_style(self):
+        try:
+            from core.config import get_config
+            default = get_config()['plugins'].get('default_citation_style', 'apa').lower()
+            keys = [key for _, key in self.STYLES]
+            if default in keys:
+                self._style_combo.setCurrentIndex(keys.index(default))
+        except Exception:
+            pass
 
     def _current_style(self):
         idx = self._style_combo.currentIndex()

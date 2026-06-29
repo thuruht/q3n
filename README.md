@@ -49,6 +49,9 @@ Multiple paragraphs are fine.
 | `index [DIR]` | Generate markdown index |
 | `init FILE` | Create empty Q3N file |
 | `fortune [DIR]` | Display random quote as fortune |
+| `validate FILE` | Validate URIs in a Q3N file |
+| `cite FILE [--style STYLE]` | Format entries as citations (MLA/APA/Chicago/BibTeX) |
+| `run PLUGIN [FILE]` | Run a plugin standalone |
 | `tutorial` | Interactive tutorial |
 | `help [CMD]` | Show help or man page |
 
@@ -58,7 +61,7 @@ Run `./bin/q3n-gui` to launch the Q3N Manager, a PySide6-based graphical browser
 
 ## URI schemes
 
-`https://`, `http://`, `file://`, `isbn://`, `doi://`, `arxiv://`, `pubmed://`, `yt://`, `spotify://`, `orcid://`, `q3n://`
+`https://`, `http://`, `file://`, `isbn://`, `doi://`, `arxiv://`, `pubmed://`, `yt://`, `spotify://`, `orcid://`, `q3n://`, `osm://`, `geo:`, `overpass://`
 
 ## Export formats
 

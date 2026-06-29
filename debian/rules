@@ -14,6 +14,7 @@ override_dh_auto_install:
 	install -D -m 755 bin/q3n-gui $(CURDIR)/debian/q3n/usr/bin/q3n-gui
 	install -D -m 644 q3n.desktop $(CURDIR)/debian/q3n/usr/share/applications/q3n.desktop
 	install -D -m 644 scripts/AppDir/q3n.png $(CURDIR)/debian/q3n/usr/share/pixmaps/q3n.png
+	install -D -m 644 q3n.appdata.xml $(CURDIR)/debian/q3n/usr/share/metainfo/work.distorted.q3n.appdata.xml
 	find app -name '*.py' | while read f; do \
 		install -D -m 644 $$f $(CURDIR)/debian/q3n/usr/lib/q3n/$$f; \
 	done

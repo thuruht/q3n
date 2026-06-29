@@ -1,4 +1,4 @@
-# Q3N Specification (v1.1)
+# Q3N Specification (v1.1.3)
 
 This document provides the formal specification for the Quote Triple-Slash Notation (Q3N) format.
 
@@ -43,6 +43,9 @@ The closing delimiter is `\\\` on its own line (matched by `^\\\\\\[ \t]*$`).
 | `yt://`      | `yt://dQw4w9WgXcQ` or `yt://watch?v=ID&t=42`    | YouTube videos             |
 | `spotify://` | `spotify://track:4cOdK2wGLETKBW3PvgPWqT`        | Music tracks               |
 | `orcid://`   | `orcid://0000-0002-1825-0097`                    | Researcher identifiers     |
+| `osm://`     | `osm://node/123456` or `osm://way/654321`        | OpenStreetMap features     |
+| `geo:`       | `geo:51.5074,-0.1278?z=13`                       | Geographic coordinates     |
+| `overpass://`| `overpass://amenity=cafe`                        | Overpass API queries       |
 
 ### Scheme-specific payload formats
 
@@ -57,6 +60,12 @@ The closing delimiter is `\\\` on its own line (matched by `^\\\\\\[ \t]*$`).
 **`orcid://`** — ORCID iD in hyphenated format: `orcid://0000-0002-1825-0097`
 
 **`spotify://`** — Spotify URI path: `spotify://track:ID` or `spotify://album:ID`
+
+**`osm://`** — OpenStreetMap feature: `osm://node|way|relation|changeset/<id>`
+
+**`geo:`** — Geographic coordinates (RFC 5870, colon-only syntax, no `//`): `geo:<lat>,<lon>[?z=<zoom>]`
+
+**`overpass://`** — Overpass QL query string: `overpass://<query>`
 
 ## Tags
 
@@ -86,3 +95,4 @@ A file is recognised as Q3N if any of:
 
 - v1.0: Initial specification
 - v1.1: Added `pubmed://`, `spotify://`, `orcid://` schemes; formalised tag syntax
+- v1.1.3: Added `osm://`, `geo:`, `overpass://` schemes; clarified `geo:` colon-only syntax
