@@ -23,7 +23,7 @@
 
 | Change | Commit |
 |--------|--------|
-| OSM/GIS URI schemes + icon fixes + website logo | pending push |
+| OSM/GIS URI schemes + icon fixes + website logo | `ec036cf` |
 
 ### OSM/GIS URI Schemes
 - `osm://node|way|relation|changeset/<id>` → `browse_url`, `api_url` in meta
