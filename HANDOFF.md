@@ -12,7 +12,7 @@
 | 3 | `q3n validate` CLI subcommand | `69e4bb1` |
 | 4 | Browser demo (`demo.html`) + XSS fix | `6ed26a3`, `e0b031d` |
 | 5 | Meta-App Framework Extension (PluginManager + GUI dock + `q3n run`) | `a65699b` |
-| 6 | Fortune Plugin (move FortuneOverlay → `app/plugins/fortune/`) | pending push |
+| 6 | Fortune Plugin (move FortuneOverlay → `app/plugins/fortune/`) | `aeee1cf` |
 
 ## Remaining Sprint Tasks
 
@@ -34,7 +34,7 @@ Icon missing from: website favicon, .deb app menu, GUI titlebar.
 Check: `q3n.desktop` icon field, `/usr/share/pixmaps/`, `debian/rules` install step.
 
 ## Resume
-Base commit for Task 7: pending (Task 6 commit)
+Base commit for Task 7: `aeee1cf`
 SDD ledger: `.superpowers/sdd/progress.md`
 Plan: `docs/superpowers/plans/2026-06-27-feature-sprint.md`
 
