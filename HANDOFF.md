@@ -26,6 +26,7 @@
 | OSM/GIS URI schemes + icon fixes + website logo | `ec036cf` |
 | Web migration + version bump 1.0.0 → 1.1.0 | `2e27b7e` |
 | Deploy to https://q3n.distorted.work | `(cf deploy, no commit)` |
+| GUI wizard OSM/GIS pages + clickable links in exports | `(pending)` |
 
 ### OSM/GIS URI Schemes
 - `osm://node|way|relation|changeset/<id>` → `browse_url`, `api_url` in meta
@@ -43,6 +44,15 @@
 ### Website
 - `docs/website/index.html` + `demo.html` — 72px/56px logo `<img>` in page header (same `favicon.png`)
 
+### GUI Wizard OSM/GIS + Clickable Links
+
+**Files changed:**
+- `gui/entry_wizard.py` — added `osm://`, `geo:`, `overpass://` to `SOURCE_TYPES`; added `place/landmark`, `place/location`, `place/route` tag presets; fixed `_on_change` preview text for `geo:` (no `://`); added help text for all three new schemes; fixed `get_entry()` to use `parse_scheme()` so `geo:` URIs parse correctly (was silently dropping the scheme)
+- `gui/entry_view.py` — added `osm`/`geo`/`overpass` to `SCHEME_ICONS` (🗺️); added `map` to `CATEGORY_COLORS` (#16a085); added OSM meta display (lat/lon/zoom, osm type/id, overpass query); added "Open ↗" button next to URI field — opens `browse_url`/`map_url` for map entries, raw URI for https/http; added `QDesktopServices` import
+- `core/q3n.py` — added `_entry_url(entry)` helper returning best browser URL (https/http passthrough, or `browse_url`/`map_url` from meta); fixed `export_html` to use `_entry_url` in `<a href>` (so `osm://` links go to openstreetmap.org); fixed `export_markdown` to use `_entry_url` (so `[uri](url)` links to the real page)
+
+**Test result:** 160/160 passed (no regressions)
+
 ### Web Migration + Version Bump
 
 **Version:** `1.0.0` → `1.1.0` in `core/__init__.py` and `debian/changelog`
@@ -55,18 +65,6 @@
 - `web/index.html` — PNG favicon added (SVG kept as fallback)
 
 **Test result:** 160/160 passed (no regressions)
-
-## Additional Pending Requests
-
-### OSM/GIS URI Schemes
-- `osm://node|way|relation|changeset/<id>` → `browse_url`, `api_url` in `as_dict()`
-- `geo:<lat>,<lon>[?z=<zoom>]` → `map_url` in `as_dict()`
-- `overpass://<query>` (stretch)
-- GUI wizard: new source type pages; exports: clickable links; tests for all
-
-### App Icon Not Displaying
-Icon missing from: website favicon, .deb app menu, GUI titlebar.
-Check: `q3n.desktop` icon field, `/usr/share/pixmaps/`, `debian/rules` install step.
 
 ## Resume
 Base commit for next work: `a81c100`

@@ -1,7 +1,8 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                                QLineEdit, QTextEdit, QPushButton, QFrame,
                                QMessageBox)
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QUrl
+from PySide6.QtGui import QDesktopServices
 from core.q3n import Q3NEntry
 
 SCHEME_ICONS = {
@@ -9,6 +10,7 @@ SCHEME_ICONS = {
     'isbn': '📚', 'doi': '📖', 'arxiv': '📋',
     'pubmed': '🔬', 'orcid': '👤', 'spotify': '🎵',
     'q3n': '👤', 'yt': '🎬', 'youtube': '🎬',
+    'osm': '🗺️', 'geo': '🗺️', 'overpass': '🗺️',
 }
 
 CATEGORY_COLORS = {
@@ -18,6 +20,7 @@ CATEGORY_COLORS = {
     'academic': '#2c3e50',
     'person': '#e67e22',
     'media': '#e74c3c',
+    'map': '#16a085',
 }
 
 
@@ -44,11 +47,18 @@ class EntryDetailView(QWidget):
         form.setSpacing(6)
 
         self._uri_label = QLabel("URI")
+        uri_row = QHBoxLayout()
         self._uri_input = QLineEdit()
         self._uri_input.setPlaceholderText("https://example.com/article")
         self._uri_input.textChanged.connect(self._mark_dirty)
+        self._open_btn = QPushButton("Open ↗")
+        self._open_btn.setFixedWidth(72)
+        self._open_btn.setToolTip("Open source URL in browser")
+        self._open_btn.clicked.connect(self._open_url)
+        uri_row.addWidget(self._uri_input)
+        uri_row.addWidget(self._open_btn)
         form.addWidget(self._uri_label)
-        form.addWidget(self._uri_input)
+        form.addLayout(uri_row)
 
         self._attribution_label = QLabel("Attribution")
         self._attribution_value = QLabel("")
@@ -104,6 +114,7 @@ class EntryDetailView(QWidget):
 
     def set_enabled(self, enabled):
         self._uri_input.setEnabled(enabled)
+        self._open_btn.setEnabled(enabled)
         self._tag_input.setEnabled(enabled)
         self._quote_input.setEnabled(enabled)
         self._save_btn.setEnabled(enabled)
@@ -163,6 +174,14 @@ class EntryDetailView(QWidget):
             meta_parts.append(f'path: {meta["path"]}')
         if 'line' in meta:
             meta_parts.append(f'line {meta["line"]}')
+        if 'lat' in meta and 'lon' in meta:
+            zoom = f'  z{meta["zoom"]}' if 'zoom' in meta else ''
+            meta_parts.append(f'{meta["lat"]}, {meta["lon"]}{zoom}')
+        if 'type' in meta and 'id' in meta and entry.scheme == 'osm':
+            meta_parts.append(f'{meta["type"]}/{meta["id"]}')
+        if 'query' in meta and entry.scheme == 'overpass':
+            q = meta['query']
+            meta_parts.append(f'query: {q[:50]}{"…" if len(q) > 50 else ""}')
         self._metadata_value.setText(' · '.join(meta_parts) if meta_parts else '')
         self.set_enabled(True)
 
@@ -178,6 +197,15 @@ class EntryDetailView(QWidget):
         self._category_label.setVisible(False)
         self._metadata_value.clear()
         self.set_enabled(False)
+
+    def _open_url(self):
+        if not self._entry:
+            return
+        meta = self._entry.as_dict().get('meta', {})
+        url = (meta.get('browse_url') or meta.get('map_url')
+               or (self._entry.uri if self._entry.uri.startswith(('https://', 'http://')) else None))
+        if url:
+            QDesktopServices.openUrl(QUrl(url))
 
     def _save(self):
         if not self._dirty or self._row < 0:

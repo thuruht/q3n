@@ -485,6 +485,14 @@ def serialize_file(entries, path):
     Path(path).write_text(serialize(entries), encoding='utf-8')
 
 
+def _entry_url(entry):
+    """Best browser-navigable URL for an entry, or None if not linkable."""
+    if entry.uri.startswith(('https://', 'http://')):
+        return entry.uri
+    meta = entry.as_dict().get('meta', {})
+    return meta.get('browse_url') or meta.get('map_url') or None
+
+
 def export_json(entries):
     return json.dumps([e.as_dict() for e in entries], indent=2)
 
@@ -495,7 +503,9 @@ def export_markdown(entries):
         lines.append(f'## Entry {i+1}')
         if e.tag:
             lines.append(f'**Tag:** {e.tag}')
-        lines.append(f'**Source:** [{e.uri}]({e.uri})')
+        url = _entry_url(e)
+        src = f'[{e.uri}]({url})' if url else e.uri
+        lines.append(f'**Source:** {src}')
         lines.append('')
         for paragraph in e.quote.split('\n'):
             if paragraph.strip():
@@ -520,7 +530,9 @@ def export_html(entries):
     parts.append('<h1>Q3N Collection</h1>')
     for e in entries:
         parts.append('<div class="entry">')
-        parts.append(f'<div class="uri"><a href="{e.uri}">{e.uri}</a></div>')
+        url = _entry_url(e)
+        uri_html = (f'<a href="{url}" target="_blank">{e.uri}</a>' if url else e.uri)
+        parts.append(f'<div class="uri">{uri_html}</div>')
         if e.tag:
             parts.append(f'<span class="tag">{e.tag}</span>')
         parts.append('<blockquote>')

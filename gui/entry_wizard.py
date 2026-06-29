@@ -2,10 +2,10 @@ from PySide6.QtWidgets import (QWizard, QWizardPage, QVBoxLayout, QHBoxLayout,
                                QLabel, QLineEdit, QTextEdit, QComboBox,
                                QRadioButton, QGroupBox, QFormLayout, QMessageBox)
 from PySide6.QtCore import Qt
-from core.q3n import Q3NEntry
+from core.q3n import Q3NEntry, parse_scheme
 
 SOURCE_TYPES = {
-    "Web URL (https/http)": ("https", "https://"),
+    "Web URL (https)": ("https", "https://"),
     "Web URL (http)": ("http", "http://"),
     "Local File": ("file", "file://"),
     "Book (ISBN)": ("isbn", "isbn://"),
@@ -13,6 +13,9 @@ SOURCE_TYPES = {
     "arXiv Paper": ("arxiv", "arxiv://"),
     "Person / Contact": ("q3n", "q3n://"),
     "YouTube Video": ("yt", "yt://"),
+    "Map Location (OSM)": ("osm", "osm://"),
+    "Geographic Coordinates": ("geo", "geo:"),
+    "Overpass Query": ("overpass", "overpass://"),
     "Custom URI": ("custom", ""),
 }
 
@@ -30,6 +33,9 @@ TAG_PRESETS = [
     "note/summary",
     "ref/academic",
     "ref/technical",
+    "place/landmark",
+    "place/location",
+    "place/route",
 ]
 
 
@@ -54,7 +60,8 @@ class SourceTypePage(QWizardPage):
     def _on_change(self):
         label = self._combo.currentText()
         scheme, prefix = SOURCE_TYPES[label]
-        self._uri_preview.setText(f"URI scheme: {scheme}://\nExample prefix: {prefix}")
+        sep = ':' if prefix.endswith(':') and '://' not in prefix else '://'
+        self._uri_preview.setText(f"URI scheme: {scheme}{sep}\nExample prefix: {prefix}")
         self.setField("scheme", scheme)
         self.setField("uri_prefix", prefix)
 
@@ -100,7 +107,10 @@ class SourceDetailsPage(QWizardPage):
             "doi": "Enter the DOI identifier.\ndoi://10.1234/abcd.567",
             "arxiv": "Enter the arXiv ID.\narxiv://2305.12345",
             "q3n": "Enter person reference.\nq3n://handle:@id;email;'Name'",
-            "yt": "Enter YouTube video ID.\nyt://watch?v=dQw4w9WgXcQ",
+            "yt": "Enter YouTube video ID.\nyt://dQw4w9WgXcQ",
+            "osm": "Enter OpenStreetMap object type and ID.\nosm://node/12345  or  osm://way/67890  or  osm://relation/999",
+            "geo": "Enter latitude and longitude (optional zoom).\ngeo:51.5074,-0.1278  or  geo:48.8566,2.3522?z=15",
+            "overpass": "Enter an Overpass API query.\noverpass://node[amenity=cafe](51.4,0.0,51.6,0.2)",
             "custom": "Enter any custom URI.",
         }
         self._help_label.setText(help_texts.get(scheme, "Enter the source URI."))
@@ -204,6 +214,5 @@ class EntryWizard(QWizard):
         uri = self.field("uri").strip()
         tag = self.field("tag").strip() or None
         quote = self.field("quote").strip()
-        scheme = uri.split('://')[0] if '://' in uri else ''
-        path = uri.split('://', 1)[1] if '://' in uri else uri
+        scheme, path = parse_scheme(uri)
         return Q3NEntry(uri, scheme, path, quote, tag)
