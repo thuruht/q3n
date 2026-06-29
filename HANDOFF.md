@@ -18,7 +18,7 @@
 
 | # | Task |
 |---|------|
-| 7 | Citation Formatter (`format_citation()` + tests) | pending push |
+| 7 | Citation Formatter (`format_citation()` + tests) | `10eb801` |
 | 8 | Citation Plugin Panel + `q3n cite` CLI alias |
 
 ## Additional Pending Requests
@@ -34,7 +34,7 @@ Icon missing from: website favicon, .deb app menu, GUI titlebar.
 Check: `q3n.desktop` icon field, `/usr/share/pixmaps/`, `debian/rules` install step.
 
 ## Resume
-Base commit for Task 8: pending (Task 7 commit)
+Base commit for Task 8: `10eb801`
 
 ## Task 7 Detail
 
