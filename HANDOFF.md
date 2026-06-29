@@ -12,12 +12,12 @@
 | 3 | `q3n validate` CLI subcommand | `69e4bb1` |
 | 4 | Browser demo (`demo.html`) + XSS fix | `6ed26a3`, `e0b031d` |
 | 5 | Meta-App Framework Extension (PluginManager + GUI dock + `q3n run`) | `a65699b` |
+| 6 | Fortune Plugin (move FortuneOverlay → `app/plugins/fortune/`) | pending push |
 
 ## Remaining Sprint Tasks
 
 | # | Task |
 |---|------|
-| 6 | Fortune Plugin (move FortuneOverlay → `app/plugins/fortune/`) |
 | 7 | Citation Formatter (`format_citation()` + tests) |
 | 8 | Citation Plugin Panel + `q3n cite` CLI alias |
 
@@ -34,9 +34,21 @@ Icon missing from: website favicon, .deb app menu, GUI titlebar.
 Check: `q3n.desktop` icon field, `/usr/share/pixmaps/`, `debian/rules` install step.
 
 ## Resume
-Base commit for Task 6: `a65699b`
+Base commit for Task 7: pending (Task 6 commit)
 SDD ledger: `.superpowers/sdd/progress.md`
 Plan: `docs/superpowers/plans/2026-06-27-feature-sprint.md`
+
+## Task 6 Detail
+
+**Files changed:**
+- `app/plugins/__init__.py` — created (empty package marker)
+- `app/plugins/fortune/__init__.py` — `PLUGIN_META` dict + `register(manager)` (registers panel + standalone) + `_run_standalone`
+- `app/plugins/fortune/widget.py` — `FortuneOverlay` moved here from `app/src/widgets/fortune_widget.py`; fixed the `setCentralWidget` hack (was calling a QMainWindow method on QWidget — replaced with a plain outer `QVBoxLayout`); cleaned up unused imports
+- `app/plugins/fortune/panel.py` — `FortunePanelWidget`: compact sidebar card with Next/Pop-out buttons; `set_entries` picks a random entry and displays quote + attribution
+- `app/src/widgets/fortune_widget.py` — replaced with one-line re-export (`from app.plugins.fortune.widget import FortuneOverlay`) so existing callers don't break
+- `app/src/main.py` — `_launch_fortune` updated to import directly from `app.plugins.fortune.widget`
+
+**Test result:** 127/127 passed (no regressions)
 
 ## Task 5 Detail
 

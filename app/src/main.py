@@ -50,7 +50,7 @@ def _launch_manager(app):
 
 def _launch_fortune(app):
     """Launch the fortune desktop widget."""
-    from app.src.widgets.fortune_widget import FortuneOverlay
+    from app.plugins.fortune.widget import FortuneOverlay
     entries = _collect_entries()
     widget = FortuneOverlay(entries=entries)
     widget.setVisible(True)
