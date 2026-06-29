@@ -17,6 +17,9 @@ if str(_repo_root) not in sys.path:
 
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
+
+_ICON_PATH = _repo_root / 'scripts' / 'AppDir' / 'q3n.png'
 
 from core import __version__
 
@@ -26,6 +29,8 @@ def main():
     app.setApplicationName('Q3N')
     app.setApplicationVersion(__version__)
     app.setOrganizationName('Q3N Project')
+    if _ICON_PATH.exists():
+        app.setWindowIcon(QIcon(str(_ICON_PATH)))
 
     args = sys.argv[1:]
 

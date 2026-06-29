@@ -8,7 +8,9 @@ from PySide6.QtWidgets import (QMainWindow, QSplitter, QListView, QWidget,
                                QToolBar, QCheckBox, QDialog, QTextEdit,
                                QDockWidget, QTabWidget)
 from PySide6.QtCore import Qt, QSize, Signal, Slot
-from PySide6.QtGui import QAction, QPalette, QFont
+from PySide6.QtGui import QAction, QPalette, QFont, QIcon
+
+_ICON_PATH = Path(__file__).resolve().parent.parent / 'scripts' / 'AppDir' / 'q3n.png'
 
 QSS = """
 QMainWindow {
@@ -220,6 +222,8 @@ class MainWindow(QMainWindow):
         self.setStyleSheet(QSS)
         self._file_path = None
         self._modified = False
+        if _ICON_PATH.exists():
+            self.setWindowIcon(QIcon(str(_ICON_PATH)))
         self._all_entries = []  # unfiltered master list
         self._plugin_panels = {}
         self._plugin_dock = None

@@ -19,6 +19,9 @@ SCHEME_REGISTRY = {
     'yt': 'media',
     'youtube': 'media',
     'spotify': 'media',
+    'osm': 'map',
+    'geo': 'map',
+    'overpass': 'map',
 }
 
 RECOGNIZED_EXTENSIONS = {'.q3n', '.q3nt', '.quotation', '.quotes'}
@@ -51,6 +54,10 @@ def detect_content_type(quote):
 def parse_scheme(uri):
     if '://' in uri:
         return uri.split('://', 1)
+    if ':' in uri:
+        scheme = uri.split(':', 1)[0].lower()
+        if scheme.isalpha():
+            return scheme, uri.split(':', 1)[1]
     return '', uri
 
 
@@ -159,6 +166,58 @@ def parse_file_uri(uri):
     return result
 
 
+def parse_osm_uri(uri):
+    path = uri.replace('osm://', '')
+    parts = path.split('/', 1)
+    obj_type = parts[0] if parts else 'node'
+    obj_id = parts[1] if len(parts) > 1 else ''
+    base = 'https://www.openstreetmap.org'
+    api = 'https://api.openstreetmap.org/api/0.6'
+    return {
+        'type': obj_type,
+        'id': obj_id,
+        'browse_url': f'{base}/{obj_type}/{obj_id}',
+        'api_url': f'{api}/{obj_type}/{obj_id}',
+    }
+
+
+def parse_geo_uri(uri):
+    parsed = urlparse(uri)
+    coord_str = parsed.path
+    result = {}
+    try:
+        lat_str, lon_str = coord_str.split(',', 1)
+        result['lat'] = float(lat_str)
+        result['lon'] = float(lon_str)
+    except (ValueError, AttributeError):
+        return result
+    zoom = None
+    if parsed.query:
+        for part in parsed.query.split('&'):
+            if part.startswith('z='):
+                try:
+                    zoom = int(part[2:])
+                except ValueError:
+                    pass
+    if zoom is not None:
+        result['zoom'] = zoom
+    z_param = f'&zoom={zoom}' if zoom is not None else '&zoom=14'
+    result['map_url'] = (
+        f'https://www.openstreetmap.org/?mlat={result["lat"]}'
+        f'&mlon={result["lon"]}{z_param}'
+    )
+    return result
+
+
+def parse_overpass_uri(uri):
+    query = uri.replace('overpass://', '')
+    from urllib.parse import quote as url_quote
+    return {
+        'query': query,
+        'api_url': f'https://overpass-api.de/api/interpreter?data={url_quote(query)}',
+    }
+
+
 URI_PARSERS = {
     'q3n': parse_q3n_uri,
     'isbn': parse_isbn_uri,
@@ -172,6 +231,9 @@ URI_PARSERS = {
     'https': parse_web_uri,
     'http': parse_web_uri,
     'file': parse_file_uri,
+    'osm': parse_osm_uri,
+    'geo': parse_geo_uri,
+    'overpass': parse_overpass_uri,
 }
 
 

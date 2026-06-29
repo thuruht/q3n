@@ -19,6 +19,28 @@
 
 ## Sprint Complete ✓
 
+## Post-Sprint Changes
+
+| Change | Commit |
+|--------|--------|
+| OSM/GIS URI schemes + icon fixes + website logo | pending push |
+
+### OSM/GIS URI Schemes
+- `osm://node|way|relation|changeset/<id>` → `browse_url`, `api_url` in meta
+- `geo:<lat>,<lon>[?z=<zoom>]` → `lat`, `lon`, `zoom`, `map_url` in meta
+- `overpass://<query>` → `query`, `api_url` in meta
+- All three added to `URI_PARSERS` and `SCHEME_REGISTRY` (category: `map`)
+- `parse_scheme` extended to handle `scheme:path` (no `//`) for `geo:` and future colon-only schemes
+- 13 new tests in `tests/test_osm.py`
+
+### App Icon
+- `gui/main_window.py` — `setWindowIcon` from `scripts/AppDir/q3n.png`
+- `app/src/main.py` — `app.setWindowIcon` on startup
+- `debian/rules` — installs icon to `/usr/share/pixmaps/q3n.png` so `.desktop` `Icon=q3n` resolves
+
+### Website
+- `docs/website/index.html` + `demo.html` — 72px/56px logo `<img>` in page header (same `favicon.png`)
+
 ## Additional Pending Requests
 
 ### OSM/GIS URI Schemes

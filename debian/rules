@@ -13,6 +13,7 @@ override_dh_auto_install:
 	install -D -m 755 tools/q3n $(CURDIR)/debian/q3n/usr/bin/q3n
 	install -D -m 755 bin/q3n-gui $(CURDIR)/debian/q3n/usr/bin/q3n-gui
 	install -D -m 644 q3n.desktop $(CURDIR)/debian/q3n/usr/share/applications/q3n.desktop
+	install -D -m 644 scripts/AppDir/q3n.png $(CURDIR)/debian/q3n/usr/share/pixmaps/q3n.png
 
 override_dh_auto_test:
 	python3 debian/tests/test_core.py
