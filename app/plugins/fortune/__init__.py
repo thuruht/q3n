@@ -14,6 +14,9 @@ def register(manager):
 
 def _run_standalone(entries, args):
     import sys
+    if not entries:
+        print('No entries loaded. Usage: q3n run fortune <file>', file=sys.stderr)
+        sys.exit(1)
     from PySide6.QtWidgets import QApplication
     app = QApplication.instance() or QApplication(sys.argv)
     from .widget import FortuneOverlay

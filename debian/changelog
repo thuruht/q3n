@@ -1,3 +1,11 @@
+q3n (1.1.3-1) unstable; urgency=low
+
+  * Fix: list_entries now filters by extension before content-scanning, preventing slow scans of home directory
+  * Fix: detect() skips files larger than 1MB to avoid reading large binaries
+  * Fix: q3n run fortune with no file argument now exits with a clear error instead of launching an empty overlay
+
+ -- Q3N Project <thuruht@users.noreply.github.com>  Mon, 29 Jun 2026 13:00:00 +0000
+
 q3n (1.1.2-1) unstable; urgency=low
 
   * Fix: install app/ plugins to /usr/lib/q3n/ so q3n run/cite work outside source tree

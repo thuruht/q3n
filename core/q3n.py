@@ -618,6 +618,8 @@ def detect(path):
     if p.suffix in RECOGNIZED_EXTENSIONS:
         return True
     try:
+        if p.stat().st_size > 1_000_000:
+            return False
         text = p.read_text(encoding='utf-8')
         if text.startswith('#!q3n-format'):
             return True
@@ -631,7 +633,7 @@ def detect(path):
 def list_entries(directory='.'):
     results = []
     for p in Path(directory).rglob('*'):
-        if p.is_file() and detect(p):
+        if p.is_file() and p.suffix in RECOGNIZED_EXTENSIONS and detect(p):
             try:
                 entries = parse_file(p)
                 if entries:
