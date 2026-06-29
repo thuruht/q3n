@@ -29,6 +29,7 @@
 | GUI wizard OSM/GIS pages + clickable links in exports | `ae86a2c` |
 | ASCII banner in CLI + osm/geo/overpass in create/tutorial | `3fb7d99` |
 | Banner on website hero + version bump 1.1.0 → 1.1.1 | `dfb31d7` |
+| Fix demo exports + 5 types; move logo to footer | `(pending)` |
 
 ### OSM/GIS URI Schemes
 - `osm://node|way|relation|changeset/<id>` → `browse_url`, `api_url` in meta

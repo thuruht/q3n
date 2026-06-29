@@ -102,7 +102,6 @@ export default function App() {
     <div className="page">
       <header className="hero">
         <pre className="hero__banner" aria-hidden="true">{BANNER}</pre>
-        <img src="/favicon.png" alt="Q3N" className="hero__logo" />
         <h1 className="hero__title">
           <span className="hero__slash">///</span> Q3N
         </h1>
@@ -304,6 +303,7 @@ No tag is fine too.
       </main>
 
       <footer className="footer">
+        <img src="/favicon.png" alt="Q3N" className="footer__logo" />
         <p>
           Q3N is free software — AGPL-3.0 with Anti-Fascist Exception.{" "}
           <a href={REPO}>thuruht/q3n</a>

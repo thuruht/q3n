@@ -164,8 +164,10 @@
       <label>Export as</label>
       <select id="format">
         <option value="json">JSON</option>
+        <option value="q3n">Q3N (roundtrip)</option>
         <option value="markdown">Markdown</option>
-        <option value="fortune">Fortune text</option>
+        <option value="plaintext">Plain text</option>
+        <option value="fortune">Fortune</option>
       </select>
     </div>
     <pre id="output"></pre>
@@ -256,9 +258,13 @@ function renderExport() {
   const fmt = document.getElementById('format').value;
   let result = '';
   try {
-    if (fmt === 'json') result = Q3NParser.toJSON(_entries, 2);
-    else if (fmt === 'markdown') result = Q3NParser.toMarkdown(_entries);
-    else if (fmt === 'fortune') result = Q3NParser.toFortune(_entries);
+    if (fmt === 'json') result = Q3NParser.exportJson(_entries);
+    else if (fmt === 'q3n') result = Q3NParser.serialize(_entries);
+    else if (fmt === 'markdown') result = Q3NParser.exportMarkdown(_entries);
+    else if (fmt === 'plaintext') result = _entries.map(e =>
+      'Source: ' + e.uri + (e.tag ? ' [' + e.tag + ']' : '') + '\n\n' + e.quote
+    ).join('\n\n---\n\n');
+    else if (fmt === 'fortune') result = Q3NParser.exportFortune(_entries);
   } catch (e) {
     result = '(export error: ' + e.message + ')';
   }
