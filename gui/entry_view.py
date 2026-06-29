@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                                QMessageBox)
 from PySide6.QtCore import Qt, Signal, QUrl
 from PySide6.QtGui import QDesktopServices
-from core.q3n import Q3NEntry
+from core.q3n import Q3NEntry, validate_uri
 
 SCHEME_ICONS = {
     'https': '🌐', 'http': '🌐', 'file': '📄',
@@ -51,14 +51,18 @@ class EntryDetailView(QWidget):
         self._uri_input = QLineEdit()
         self._uri_input.setPlaceholderText("https://example.com/article")
         self._uri_input.textChanged.connect(self._mark_dirty)
+        self._uri_input.textChanged.connect(self._update_validation)
         self._open_btn = QPushButton("Open ↗")
         self._open_btn.setFixedWidth(72)
         self._open_btn.setToolTip("Open source URL in browser")
         self._open_btn.clicked.connect(self._open_url)
         uri_row.addWidget(self._uri_input)
         uri_row.addWidget(self._open_btn)
+        self._validation_label = QLabel("")
+        self._validation_label.setStyleSheet("font-size: 11px;")
         form.addWidget(self._uri_label)
         form.addLayout(uri_row)
+        form.addWidget(self._validation_label)
 
         self._attribution_label = QLabel("Attribution")
         self._attribution_value = QLabel("")
@@ -123,6 +127,19 @@ class EntryDetailView(QWidget):
     def _mark_dirty(self):
         self._dirty = True
 
+    def _update_validation(self):
+        uri = self._uri_input.text().strip()
+        if not uri:
+            self._validation_label.setText('')
+            return
+        errors = validate_uri(uri)
+        if errors:
+            self._validation_label.setText(f'⚠ {errors[0]}')
+            self._validation_label.setStyleSheet('color: #e74c3c; font-size: 11px;')
+        else:
+            self._validation_label.setText('✓ valid')
+            self._validation_label.setStyleSheet('color: #27ae60; font-size: 11px;')
+
     def show_entry(self, row, entry):
         self._row = row
         self._entry = entry
@@ -131,6 +148,7 @@ class EntryDetailView(QWidget):
         self._tag_input.setText(entry.tag or '')
         self._quote_input.setPlainText(entry.quote)
         self._scheme_value.setText(entry.scheme)
+        self._update_validation()
         icon = SCHEME_ICONS.get(entry.scheme, '🔗')
         self._attribution_value.setText(f'{icon} {entry.attribution()}' if entry.attribution() else icon)
         derived = entry.as_dict()
@@ -196,6 +214,7 @@ class EntryDetailView(QWidget):
         self._attribution_value.clear()
         self._category_label.setVisible(False)
         self._metadata_value.clear()
+        self._validation_label.setText('')
         self.set_enabled(False)
 
     def _open_url(self):

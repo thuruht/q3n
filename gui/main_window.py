@@ -317,6 +317,8 @@ class MainWindow(QMainWindow):
         self._add_action(tools_menu, "Preview Index", None, self._preview_index)
         tools_menu.addSeparator()
         self._add_action(tools_menu, "Generate Index File...", None, self._generate_index_file)
+        tools_menu.addSeparator()
+        self._add_action(tools_menu, "Validate URIs...", None, self._validate_file)
 
         help_menu = menubar.addMenu("&Help")
         self._add_action(help_menu, "&About Q3N Manager", None, self._show_about)
@@ -610,6 +612,28 @@ class MainWindow(QMainWindow):
             self._status.showMessage(f"Index saved to {path}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save index:\n{e}")
+
+    def _validate_file(self):
+        from core.q3n import validate_uri
+        if not self._all_entries:
+            QMessageBox.information(self, "Validate URIs", "No entries loaded.")
+            return
+        invalid = []
+        for i, entry in enumerate(self._all_entries, 1):
+            errs = validate_uri(entry.uri)
+            if errs:
+                short = entry.uri[:60] + ('…' if len(entry.uri) > 60 else '')
+                invalid.append(f'Entry {i}: {errs[0]}\n  {short}')
+        if not invalid:
+            QMessageBox.information(self, "Validate URIs",
+                f"All {len(self._all_entries)} URIs are valid.")
+        else:
+            msg = QMessageBox(self)
+            msg.setWindowTitle("Validate URIs")
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText(f"{len(invalid)} of {len(self._all_entries)} entries have invalid URIs.")
+            msg.setDetailedText('\n\n'.join(invalid))
+            msg.exec()
 
     def load_plugins(self, manager):
         panels = manager.panels
