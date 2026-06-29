@@ -1,3 +1,12 @@
+q3n (1.1.0-1) unstable; urgency=medium
+
+  * OSM/GIS URI schemes: osm://, geo:, overpass://
+  * Plugin architecture: fortune and cite panels with q3n run / q3n cite CLI
+  * Citation formatter: MLA 9, APA 7, Chicago 17, BibTeX
+  * Web: migrate docs/website into Cloudflare Worker + React app; add demo page
+
+ -- Q3N Project <thuruht@users.noreply.github.com>  Sun, 29 Jun 2026 00:00:00 +0000
+
 q3n (1.0.0-1) unstable; urgency=medium
 
   * Initial release.

@@ -24,6 +24,7 @@
 | Change | Commit |
 |--------|--------|
 | OSM/GIS URI schemes + icon fixes + website logo | `ec036cf` |
+| Web migration + version bump 1.0.0 → 1.1.0 | `(pending)` |
 
 ### OSM/GIS URI Schemes
 - `osm://node|way|relation|changeset/<id>` → `browse_url`, `api_url` in meta
@@ -40,6 +41,19 @@
 
 ### Website
 - `docs/website/index.html` + `demo.html` — 72px/56px logo `<img>` in page header (same `favicon.png`)
+
+### Web Migration + Version Bump
+
+**Version:** `1.0.0` → `1.1.0` in `core/__init__.py` and `debian/changelog`
+
+**`docs/website/` merged into `web/` and deleted.** Content migrated:
+- `web/public/demo.html` — interactive live demo (back link updated from `index.html` → `/`; osm/geo scheme badges added)
+- `web/public/q3n-parser.js` — JS parser for browser use
+- `web/src/App.tsx` — expanded with: hero logo + "Try it live →" link; Overview section with 3 feature cards; Examples section with 4 format examples; Tools section (CLI, GUI, JS parser, VS Code); Getting Started section; updated scheme list (`osm · geo · overpass` added); footer license corrected to AGPL-3.0 with Anti-Fascist Exception
+- `web/src/App.css` — added: `.hero__logo`, `.hero__link--accent`, `.section-desc`, `.features`/`.feature`, `.examples`/`.example__label`, section spacing
+- `web/index.html` — PNG favicon added (SVG kept as fallback)
+
+**Test result:** 160/160 passed (no regressions)
 
 ## Additional Pending Requests
 

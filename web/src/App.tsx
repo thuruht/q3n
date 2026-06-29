@@ -55,7 +55,6 @@ export default function App() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    // Fetch R2 package list and latest release tag in parallel
     Promise.all([
       fetch("/api/packages").then((r) => r.json()) as Promise<{ files: PackageFile[] }>,
       fetch("/api/releases").then((r) => r.json()) as Promise<Release>,
@@ -74,6 +73,7 @@ export default function App() {
   return (
     <div className="page">
       <header className="hero">
+        <img src="/favicon.png" alt="Q3N" className="hero__logo" />
         <h1 className="hero__title">
           <span className="hero__slash">///</span> Q3N
         </h1>
@@ -85,50 +85,174 @@ export default function App() {
         <div className="hero__links">
           <a className="hero__link" href={REPO}>GitHub</a>
           <a className="hero__link" href={RAW_SPEC}>Format spec</a>
+          <a className="hero__link hero__link--accent" href="/demo.html">Try it live →</a>
         </div>
         {version && <p className="hero__version">Latest release: {version}</p>}
       </header>
 
       <main className="main">
-        <h2 className="section-title">Download</h2>
-
-        {error && (
-          <p className="notice">
-            Could not load package info —{" "}
-            <a href={`${REPO}/releases`}>see GitHub Releases</a> instead.
+        {/* ── Overview ───────────────────────────────────── */}
+        <section>
+          <h2 className="section-title">Overview</h2>
+          <p className="section-desc">
+            Q3N is a lightweight, machine-readable format for storing quotations
+            with their source information. It uses triple-slash delimiters and
+            URI-formatted source references.
           </p>
-        )}
+          <div className="features">
+            <div className="feature">
+              <h3 className="feature__title">URI-based Sources</h3>
+              <p className="feature__body">
+                Standard schemes like <code>https://</code> or custom ones like{" "}
+                <code>isbn://</code>, <code>doi://</code>, <code>osm://</code>, and more.
+              </p>
+            </div>
+            <div className="feature">
+              <h3 className="feature__title">Tag Hierarchy</h3>
+              <p className="feature__body">
+                Organise entries with slash-delimited tags:{" "}
+                <code>cite/article</code>, <code>note/idea</code>, <code>cite/book</code>.
+              </p>
+            </div>
+            <div className="feature">
+              <h3 className="feature__title">Simple Parsing</h3>
+              <p className="feature__body">
+                Line-by-line format parseable in any language. Implementations in
+                Python and JavaScript.
+              </p>
+            </div>
+          </div>
+        </section>
 
-        <div className="cards">
-          <DownloadCard
-            icon="📦"
-            title="Debian / Ubuntu"
-            subtitle=".deb package — installs CLI, GUI, man page, and MIME type"
-            file={deb}
-            fallbackHref={`${REPO}/releases`}
-          />
-          <DownloadCard
-            icon="🗜️"
-            title="Generic Linux"
-            subtitle="tar.gz archive — extract anywhere, no install needed"
-            file={tar}
-            fallbackHref={`${REPO}/releases`}
-          />
-          <DownloadCard
-            icon="🖥️"
-            title="AppImage"
-            subtitle="Portable single-file executable, runs on any x86-64 Linux"
-            file={appimg}
-            fallbackHref={`${REPO}/releases`}
-          />
-          <DownloadCard
-            icon="📦"
-            title="Flatpak"
-            subtitle="Sandboxed, universal Linux package via Flathub"
-            comingSoon
-          />
-        </div>
+        {/* ── Examples ───────────────────────────────────── */}
+        <section>
+          <h2 className="section-title">Examples</h2>
+          <div className="examples">
+            <div className="example">
+              <h3 className="example__label">Web citation</h3>
+              <pre className="codeblock">{`/// https://example.com/article /// cite/article:
+The quoted text goes here.
+\\\\\\`}</pre>
+            </div>
+            <div className="example">
+              <h3 className="example__label">Book quote</h3>
+              <pre className="codeblock">{`/// isbn://9780547249643;'1984';'George Orwell';1949
+War is peace. Freedom is slavery.
+\\\\\\`}</pre>
+            </div>
+            <div className="example">
+              <h3 className="example__label">Academic paper</h3>
+              <pre className="codeblock">{`/// doi://10.1126/science.187.4176.433
+The more the universe seems comprehensible…
+\\\\\\`}</pre>
+            </div>
+            <div className="example">
+              <h3 className="example__label">Map location</h3>
+              <pre className="codeblock">{`/// geo:51.5,-0.1?z=15 /// place:
+Observed at this location.
+\\\\\\`}</pre>
+            </div>
+          </div>
+        </section>
 
+        {/* ── Download ───────────────────────────────────── */}
+        <section>
+          <h2 className="section-title">Download</h2>
+
+          {error && (
+            <p className="notice">
+              Could not load package info —{" "}
+              <a href={`${REPO}/releases`}>see GitHub Releases</a> instead.
+            </p>
+          )}
+
+          <div className="cards">
+            <DownloadCard
+              icon="📦"
+              title="Debian / Ubuntu"
+              subtitle=".deb package — installs CLI, GUI, man page, and MIME type"
+              file={deb}
+              fallbackHref={`${REPO}/releases`}
+            />
+            <DownloadCard
+              icon="🗜️"
+              title="Generic Linux"
+              subtitle="tar.gz archive — extract anywhere, no install needed"
+              file={tar}
+              fallbackHref={`${REPO}/releases`}
+            />
+            <DownloadCard
+              icon="🖥️"
+              title="AppImage"
+              subtitle="Portable single-file executable, runs on any x86-64 Linux"
+              file={appimg}
+              fallbackHref={`${REPO}/releases`}
+            />
+            <DownloadCard
+              icon="📦"
+              title="Flatpak"
+              subtitle="Sandboxed, universal Linux package via Flathub"
+              comingSoon
+            />
+          </div>
+        </section>
+
+        {/* ── Tools ──────────────────────────────────────── */}
+        <section>
+          <h2 className="section-title">Tools</h2>
+          <div className="cards">
+            <div className="card">
+              <span className="card__icon">⌨️</span>
+              <div className="card__body">
+                <h3 className="card__title">CLI</h3>
+                <p className="card__sub">
+                  <code>q3n show · search · export · cite · validate</code>
+                </p>
+              </div>
+              <a className="btn" href={REPO}>View on GitHub</a>
+            </div>
+            <div className="card">
+              <span className="card__icon">🖼️</span>
+              <div className="card__body">
+                <h3 className="card__title">GUI</h3>
+                <p className="card__sub">PySide6 browser and editor with plugin panels</p>
+              </div>
+              <a className="btn" href={REPO}>View on GitHub</a>
+            </div>
+            <div className="card">
+              <span className="card__icon">🌐</span>
+              <div className="card__body">
+                <h3 className="card__title">JavaScript Parser</h3>
+                <p className="card__sub">Works in Node.js and the browser</p>
+              </div>
+              <a className="btn" href="/demo.html">Live demo</a>
+            </div>
+            <div className="card">
+              <span className="card__icon">🔤</span>
+              <div className="card__body">
+                <h3 className="card__title">VS Code Extension</h3>
+                <p className="card__sub">Syntax highlighting for <code>.q3n</code> files</p>
+              </div>
+              <a className="btn" href={`${REPO}/tree/main/vscode-extension`}>View source</a>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Getting Started ────────────────────────────── */}
+        <section>
+          <h2 className="section-title">Getting Started</h2>
+          <pre className="codeblock">{`pip install q3n
+q3n show examples/sample.q3n
+q3n search "cosmos" .
+q3n export quotes.q3n -o quotes.md -f md
+q3n cite quotes.q3n --style mla --all`}</pre>
+          <p className="format__desc" style={{ marginTop: "0.75rem" }}>
+            Or clone and run without installing:{" "}
+            <code>git clone https://github.com/thuruht/q3n && cd q3n && python tools/q3n --help</code>
+          </p>
+        </section>
+
+        {/* ── Format ─────────────────────────────────────── */}
         <section className="format">
           <h2 className="section-title">The format</h2>
           <pre className="codeblock">{`#!q3n-format
@@ -144,14 +268,15 @@ No tag is fine too.
           <p className="format__desc">
             One block per quotation. Open with <code>/// &lt;uri&gt;</code>, close with{" "}
             <code>\\\</code>. Supported schemes:{" "}
-            <code>https · isbn · doi · arxiv · pubmed · orcid · spotify · yt · file · q3n</code>.
+            <code>https · isbn · doi · arxiv · pubmed · orcid · spotify · yt · file · q3n · osm · geo · overpass</code>.{" "}
+            <a href={RAW_SPEC}>Full specification ↗</a>
           </p>
         </section>
       </main>
 
       <footer className="footer">
         <p>
-          Q3N is free software, MIT licensed.{" "}
+          Q3N is free software — AGPL-3.0 with Anti-Fascist Exception.{" "}
           <a href={REPO}>thuruht/q3n</a>
         </p>
       </footer>

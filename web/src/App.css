@@ -130,6 +130,59 @@
 }
 .format__desc { font-size: 0.9rem; color: var(--c-muted); }
 
+/* ── Hero logo ────────────────────────────────────────────────────── */
+.hero__logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+}
+.hero__link--accent { border-color: var(--c-accent); color: var(--c-accent); }
+.hero__link--accent:hover { border-color: var(--c-accent); opacity: 0.8; text-decoration: none; }
+
+/* ── Section desc ─────────────────────────────────────────────────── */
+.section-desc {
+  color: var(--c-muted);
+  font-size: 0.95rem;
+  margin-bottom: 1.25rem;
+  max-width: 680px;
+}
+
+/* ── Feature cards (overview) ─────────────────────────────────────── */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.feature {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  padding: 1.1rem 1rem;
+}
+.feature__title { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; }
+.feature__body { font-size: 0.85rem; color: var(--c-muted); line-height: 1.5; }
+
+/* ── Examples ─────────────────────────────────────────────────────── */
+.examples {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.example__label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-muted);
+  margin-bottom: 0.4rem;
+}
+
+/* ── Section spacing ──────────────────────────────────────────────── */
+main > section { margin-bottom: 3rem; }
+
 /* ── Notice ───────────────────────────────────────────────────────── */
 .notice {
   background: #1e1a14;
