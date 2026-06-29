@@ -25,6 +25,7 @@
 |--------|--------|
 | OSM/GIS URI schemes + icon fixes + website logo | `ec036cf` |
 | Web migration + version bump 1.0.0 → 1.1.0 | `2e27b7e` |
+| Deploy to https://q3n.distorted.work | `(cf deploy, no commit)` |
 
 ### OSM/GIS URI Schemes
 - `osm://node|way|relation|changeset/<id>` → `browse_url`, `api_url` in meta
