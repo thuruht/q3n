@@ -1,7 +1,7 @@
 .\" Man page for q3n
 .\" Automatically generated
 
-.TH Q3N 1 "2026-06-25" "1.0" "Q3N Manual"
+.TH Q3N 1 "2026-06-29" "1.1.3" "Q3N Manual"
 
 .SH NAME
 q3n \- Quote Triple-Slash Notation CLI — manage quoted text collections
@@ -109,7 +109,9 @@ q3n export <file> -o <output> -f <format>
 .RE
 
 Supported formats: \fBtxt\fR (plain text), \fBjson\fR (structured data),
-\fBmd\fR (Markdown with blockquotes), \fBq3n\fR (canonical Q3N).
+\fBmd\fR (Markdown with blockquotes), \fBhtml\fR (self-contained HTML page),
+\fBindex\fR (Markdown table index), \fBfortune\fR (Unix fortune-compatible),
+\fBq3n\fR (canonical Q3N).
 
 .SS import
 Import entries from another file (Q3N or JSON) into a Q3N file.
@@ -136,6 +138,47 @@ Create a new empty Q3N file with the \fB#!q3n-format\fR header.
 .RS
 q3n init <file>
 .RE
+
+.SS validate
+Check that all URIs in a Q3N file conform to their scheme rules
+(URL host presence, ISBN checksum, DOI format, etc.).
+Prints OK or error per entry and exits 1 if any fail.
+
+.B Usage:
+.RS
+q3n validate <file>
+.RE
+
+.SS fortune
+Display a random entry as an ASCII art fortune cookie.
+
+.B Usage:
+.RS
+q3n fortune [file-or-directory] [-c N] [--art TYPE] [--no-art]
+.br
+q3n fortune [--filter-tag TAG] [--filter-scheme SCHEME]
+.RE
+
+.SS cite
+Format one or more entries as formatted citations.
+
+.B Usage:
+.RS
+q3n cite <file> [--style mla|apa|chicago|bibtex] [--entry N] [--all]
+.RE
+
+Supported styles: \fBmla\fR (MLA 9th ed.), \fBapa\fR (APA 7th ed.),
+\fBchicago\fR (Chicago 17th ed.), \fBbibtex\fR (BibTeX).
+
+.SS run
+Launch a plugin in standalone mode.
+
+.B Usage:
+.RS
+q3n run <plugin> [file] [args...]
+.RE
+
+Available plugins: \fBfortune\fR (overlay window), \fBcite\fR (citation panel).
 
 .SS tutorial
 Display an interactive tutorial introducing the Q3N format and CLI commands.
@@ -203,6 +246,24 @@ arXiv preprint IDs.
 .TP
 .B yt://
 YouTube video identifiers.
+.TP
+.B pubmed://
+PubMed article identifiers (PMID).
+.TP
+.B orcid://
+Researcher ORCID iDs; format: \fBorcid://0000-0002-1825-0097\fR.
+.TP
+.B spotify://
+Spotify track/album/playlist URIs; format: \fBspotify://track:ID\fR.
+.TP
+.B osm://
+OpenStreetMap objects; format: \fBosm://node|way|relation|changeset/ID\fR.
+.TP
+.B geo:
+Geographic coordinates; format: \fBgeo:lat,lon[?z=zoom]\fR.
+.TP
+.B overpass://
+Overpass API queries; format: \fBoverpass://QL-query\fR.
 .TP
 .B q3n://
 Person references; format: \fBq3n://@handle;email;'Name'\fR.

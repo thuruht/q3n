@@ -1081,7 +1081,7 @@ def main():
     p.add_argument('file', help='Source Q3N file')
     p.add_argument('-o', '--output', help='Output file')
     p.add_argument('-f', '--format', default='txt',
-                   choices=['q3n', 'json', 'md', 'txt'],
+                   choices=['q3n', 'json', 'md', 'html', 'txt', 'index', 'fortune'],
                    help='Export format')
 
     # import

@@ -44,11 +44,14 @@ Multiple paragraphs are fine.
 | `edit FILE [n]` | Edit an entry |
 | `search PATTERN [DIR]` | Search entry text |
 | `stats [DIR]` | Show collection statistics |
-| `export FILE -o OUT -f FMT` | Export entries |
+| `export FILE -o OUT -f FMT` | Export entries (q3n/json/md/html/txt/index/fortune) |
 | `import SRC DEST` | Import entries |
 | `index [DIR]` | Generate markdown index |
 | `init FILE` | Create empty Q3N file |
+| `validate FILE` | Validate URIs in a file |
 | `fortune [DIR]` | Display random quote as fortune |
+| `cite FILE [--style mla\|apa\|chicago\|bibtex]` | Format entries as citations |
+| `run PLUGIN [FILE]` | Run a plugin standalone |
 | `tutorial` | Interactive tutorial |
 | `help [CMD]` | Show help or man page |
 
@@ -58,7 +61,7 @@ Run `./bin/q3n-gui` to launch the Q3N Manager, a PySide6-based graphical browser
 
 ## URI schemes
 
-`https://`, `http://`, `file://`, `isbn://`, `doi://`, `arxiv://`, `pubmed://`, `yt://`, `spotify://`, `orcid://`, `q3n://`
+`https://`, `http://`, `file://`, `isbn://`, `doi://`, `arxiv://`, `pubmed://`, `yt://`, `spotify://`, `orcid://`, `q3n://`, `osm://`, `geo:`, `overpass://`
 
 ## Export formats
 

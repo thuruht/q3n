@@ -8,9 +8,9 @@ This document provides the formal specification for the Quote Triple-Slash Notat
 q3n        = "///", ws, source_uri, [ws, "///", ws, tag, ":"], ws, newline,
              quote_text,
              "\\\", newline ;
-source_uri = (standard_uri | custom_uri) ;
+source_uri = (standard_uri | colon_uri) ;
 standard_uri = scheme "://" path ;
-custom_uri  = scheme "://" [author], path ;
+colon_uri   = scheme ":" path ;        (* used by geo: coordinates *)
 scheme      = (letter | digit), {letter | digit | "+" | "-" | "."} ;
 path        = {unreserved | escaped | delimiter} ;
 tag         = {letter | digit | "/" | "-" | "_"} ;
@@ -43,6 +43,9 @@ The closing delimiter is `\\\` on its own line (matched by `^\\\\\\[ \t]*$`).
 | `yt://`      | `yt://dQw4w9WgXcQ` or `yt://watch?v=ID&t=42`    | YouTube videos             |
 | `spotify://` | `spotify://track:4cOdK2wGLETKBW3PvgPWqT`        | Music tracks               |
 | `orcid://`   | `orcid://0000-0002-1825-0097`                    | Researcher identifiers     |
+| `osm://`     | `osm://node/1234567`                             | OpenStreetMap objects      |
+| `geo:`       | `geo:51.5074,-0.1278?z=12`                       | Geographic coordinates     |
+| `overpass://`| `overpass://node["name"="Stonewall Inn"]`        | Overpass API queries       |
 
 ### Scheme-specific payload formats
 
@@ -86,3 +89,4 @@ A file is recognised as Q3N if any of:
 
 - v1.0: Initial specification
 - v1.1: Added `pubmed://`, `spotify://`, `orcid://` schemes; formalised tag syntax
+- v1.2: Added `osm://`, `geo:`, `overpass://` map schemes

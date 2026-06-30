@@ -21,4 +21,5 @@ Description: Quote Triple-Slash Notation — manage quoted text collections
   • Q3N Manager GUI — graphical browser/editor (python3 gui/app.py)
  .
  Entries use the simple /// … \\\ delimiter notation with
- support for https, file, ISBN, DOI, arXiv, and custom URIs.
+ support for https, file, ISBN, DOI, arXiv, PubMed, ORCID,
+ YouTube, Spotify, OpenStreetMap, geo coordinates, and q3n URIs.

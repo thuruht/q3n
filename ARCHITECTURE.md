@@ -79,6 +79,9 @@ Argparse-based dispatcher. Each subcommand is a `cmd_*` function returning an ex
 - `help [command]` — delegates to man page or prints command list
 - `tutorial` — interactive text tutorial with sections and prompts
 - `fortune` — display random entry as ASCII art fortune cookie
+- `validate` — check URIs against per-scheme rules; exits 1 on any failure
+- `cite [--style mla|apa|chicago|bibtex]` — format entries as citations via `app/plugins/cite`
+- `run <plugin> [file]` — launch a plugin standalone via `PluginManager`
 - `show`, `list`, `create`, `edit`, `search`, `stats`, `export`, `import`, `index`, `init`
 
 ## GUI (`gui/`)
@@ -116,10 +119,29 @@ Multi-page wizard:
 4. ContentPage — enter quoted text
 5. ReviewPage — preview the formatted entry
 
+## Plugin system (`app/`)
+
+Plugins extend the CLI and GUI without touching core code.
+
+```
+app/
+  plugins/
+    fortune/    FortunePanelWidget (sidebar card) + FortuneOverlay (standalone window)
+    cite/       CitePanelWidget + format_citation(entry, style) engine
+  src/
+    core/plugin_manager.py    PluginManager — register_panel, register_standalone, run_standalone
+    main.py                   Meta-app entry point (loads plugins into GUI dock)
+```
+
+The GUI's `MainWindow.load_plugins(manager)` creates a right-side `QDockWidget` with one tab per
+registered panel. `q3n run <plugin>` invokes `run_standalone` from the CLI. The plugin directory
+is installed to `/usr/lib/q3n/app/` by the Debian package and must be in `PYTHONPATH` or sys.path
+for the CLI to find it outside the source tree.
+
 ## Debian packaging
 
 - `debian/` — standard Debian source package layout
-- `debian/rules` uses `dh $@ --with python3`
-- `debian/install` lists files for `/usr/lib/python3/dist-packages/` and `/usr/bin/`
-- Depends on `python3-pyside6` for GUI
+- `debian/rules` uses `dh $@ --with python3 --buildsystem=pybuild`; also installs `app/` Python
+  files to `/usr/lib/q3n/app/` and the icon to `/usr/share/pixmaps/q3n.png`
+- Depends on `python3-pyside6.qtwidgets` for GUI
 - Build-Depends on `debhelper-compat (= 13)`, `dh-python`, `python3-all`, `python3-setuptools`

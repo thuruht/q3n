@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Python 3.8+
+- Python 3.9+
 - PySide6 6.5+ (for GUI)
 - setuptools (for pip install)
 

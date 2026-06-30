@@ -49,7 +49,7 @@ The entire format engine lives here — no GUI dependencies. Key types and funct
 - **`detect(path) → bool`** — identifies Q3N files by extension, `#!q3n-format` header, or content pattern.
 - **`list_entries(directory)`** — recursively discovers and parses Q3N files.
 
-URI parsing is scheme-dispatched via `URI_PARSERS` dict; each scheme (`https`, `isbn`, `q3n`, `doi`, `arxiv`, `yt`, `file`) has its own parser function returning a `meta` dict.
+URI parsing is scheme-dispatched via `URI_PARSERS` dict; each scheme (`https`, `http`, `isbn`, `q3n`, `doi`, `arxiv`, `yt`, `file`, `pubmed`, `orcid`, `spotify`, `osm`, `geo`, `overpass`) has its own parser function returning a `meta` dict.
 
 ### CLI (`tools/q3n`)
 
