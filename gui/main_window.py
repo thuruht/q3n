@@ -134,12 +134,20 @@ QTextEdit#citation_box {
 """
 
 
+_DEFAULT_THEME = Path(__file__).resolve().parent / 'q3n_scriptorium.qss'
+
+
 def _load_stylesheet():
     from core.config import get_style_file
     style_file = get_style_file()
     if style_file:
         try:
             return style_file.read_text()
+        except Exception:
+            pass
+    if _DEFAULT_THEME.exists():
+        try:
+            return _DEFAULT_THEME.read_text()
         except Exception:
             pass
     return QSS

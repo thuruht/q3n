@@ -10,6 +10,7 @@ setup(
     url='https://github.com/thuruht/q3n',
     license='AGPL-3.0-only',
     packages=find_packages(include=['core', 'core.*', 'gui', 'gui.*']),
+    package_data={'gui': ['*.qss']},
     python_requires='>=3.9',
     install_requires=[
         'PySide6>=6.5',

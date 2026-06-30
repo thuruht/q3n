@@ -8,6 +8,7 @@ q3n (1.1.4-1) unstable; urgency=low
   * Fix: build-appimage.sh no longer depends on web/ directory for icon
   * Fix: source tarballs exclude web/ and .github/ via .gitattributes
   * Chore: debian/control description corrected; Recommends: python3-pip removed
+  * Add: Scriptorium warm dark theme shipped as the default GUI theme
   * Bump version to 1.1.4
 
  -- Q3N Project <thuruht@users.noreply.github.com>  Mon, 30 Jun 2026 00:00:00 +0000
