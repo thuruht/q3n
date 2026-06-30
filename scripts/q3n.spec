@@ -11,6 +11,7 @@ a = Analysis(
     datas=[
         (str(repo_root / 'core'), 'core'),
         (str(repo_root / 'gui'), 'gui'),
+        (str(repo_root / 'app'), 'app'),
         (str(repo_root / 'art'), 'art'),
         (str(repo_root / 'examples'), 'examples'),
     ],

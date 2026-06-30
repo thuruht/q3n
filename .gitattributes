@@ -1,0 +1,3 @@
+# Exclude from `git archive` source tarballs
+web/                export-ignore
+.github/            export-ignore

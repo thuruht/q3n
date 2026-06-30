@@ -30,9 +30,6 @@ rm -rf "$APPDIR/usr"
 mkdir -p "$APPDIR/usr/opt"
 cp -r "$DIST_DIR" "$APPDIR/usr/opt/q3n"
 
-# Copy icon
-cp "$REPO_ROOT/web/public/favicon.png" "$APPDIR/q3n.png"
-
 # Download appimagetool if not cached
 if [ ! -f "$APPIMAGETOOL" ]; then
     echo "==> Downloading appimagetool..."

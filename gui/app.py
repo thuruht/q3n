@@ -10,7 +10,11 @@ from gui.main_window import MainWindow
 
 
 def _find_app_root():
-    for candidate in (Path(__file__).resolve().parent.parent, Path('/usr/lib/q3n')):
+    candidates = []
+    if getattr(sys, 'frozen', False):
+        candidates.append(Path(sys.executable).resolve().parent)
+    candidates += [Path(__file__).resolve().parent.parent, Path('/usr/lib/q3n')]
+    for candidate in candidates:
         if (candidate / 'app' / 'src' / 'core' / 'plugin_manager.py').exists():
             return candidate
     return None
@@ -47,6 +51,12 @@ def main():
         pass
 
     win.show()
+
+    if len(sys.argv) > 1:
+        p = Path(sys.argv[1])
+        if p.exists():
+            win.open_path(p)
+
     return app.exec()
 
 

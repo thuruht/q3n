@@ -53,7 +53,7 @@ class FortunePanelWidget(QWidget):
         self._attr_label.setText(entry.attribution())
 
     def _pop_out(self):
-        from app.plugins.fortune.widget import FortuneOverlay
+        from .widget import FortuneOverlay
         overlay = FortuneOverlay(entries=self._entries, parent=None)
         overlay.show()
         self._overlay = overlay

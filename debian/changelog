@@ -1,3 +1,17 @@
+q3n (1.1.4-1) unstable; urgency=low
+
+  * Fix: plugins (fortune/cite) now load correctly in the installed .deb package
+  * Fix: plugins now bundled in AppImage (app/ added to PyInstaller datas)
+  * Fix: AppImage plugin discovery handles PyInstaller frozen executable path
+  * Fix: fortune pop-out uses relative import, works in all install contexts
+  * Fix: double-clicking a .q3n file in a file manager now opens it (handles %F arg)
+  * Fix: build-appimage.sh no longer depends on web/ directory for icon
+  * Fix: source tarballs exclude web/ and .github/ via .gitattributes
+  * Chore: debian/control description corrected; Recommends: python3-pip removed
+  * Bump version to 1.1.4
+
+ -- Q3N Project <thuruht@users.noreply.github.com>  Mon, 30 Jun 2026 00:00:00 +0000
+
 q3n (1.1.3-1) unstable; urgency=low
 
   * Fix: list_entries filters by extension before content-scanning (no more slow home dir scans)
