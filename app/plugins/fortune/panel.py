@@ -9,6 +9,7 @@ class FortunePanelWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._entries = []
+        self._overlays = []
         self._setup_ui()
 
     def _setup_ui(self):
@@ -104,4 +105,4 @@ class FortunePanelWidget(QWidget):
         from .widget import FortuneOverlay
         overlay = FortuneOverlay(entries=self._filtered_entries(), parent=None)
         overlay.show()
-        self._overlay = overlay
+        self._overlays.append(overlay)

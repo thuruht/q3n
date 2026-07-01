@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                                QMessageBox)
 from PySide6.QtCore import Qt, Signal, QUrl
 from PySide6.QtGui import QDesktopServices
-from core.q3n import Q3NEntry, validate_uri
+from core.q3n import Q3NEntry, validate_uri, parse_scheme
 
 SCHEME_ICONS = {
     'https': '🌐', 'http': '🌐', 'file': '📄',
@@ -257,11 +257,12 @@ class EntryDetailView(QWidget):
             return
         tag = self._tag_input.text().strip() or None
         quote = self._quote_input.toPlainText()
-        scheme = uri.split('://')[0] if '://' in uri else ''
-        path = uri.split('://', 1)[1] if '://' in uri else uri
+        scheme, path = parse_scheme(uri)
         entry = Q3NEntry(uri, scheme, path, quote, tag)
         self._entry = entry
         self._dirty = False
+        tag_part = f' /// {tag}:' if tag else ''
+        self._source_view.setPlainText(f'/// {uri}{tag_part}\n{quote}\n\\\\\\')
         self.entry_changed.emit(self._row, entry)
 
     def _revert(self):
