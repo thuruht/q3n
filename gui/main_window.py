@@ -1,3 +1,5 @@
+import re
+from collections import Counter
 from pathlib import Path
 
 from PySide6.QtWidgets import (QMainWindow, QSplitter, QListView, QWidget,
@@ -6,7 +8,9 @@ from PySide6.QtWidgets import (QMainWindow, QSplitter, QListView, QWidget,
                                QMenu, QFileDialog, QMessageBox, QStatusBar,
                                QStyledItemDelegate, QStyle, QApplication,
                                QToolBar, QCheckBox, QDialog, QTextEdit,
-                               QDockWidget, QTabWidget)
+                               QDockWidget, QTabWidget, QFormLayout,
+                               QTextBrowser, QTableWidget, QTableWidgetItem,
+                               QHeaderView, QDialogButtonBox)
 from PySide6.QtCore import Qt, QSize, Signal, Slot
 from PySide6.QtGui import QAction, QPalette, QFont, QIcon
 
@@ -251,6 +255,349 @@ class PreviewDialog(QDialog):
         layout.addWidget(close_btn)
 
 
+TUTORIAL_PAGES = [
+    ("What is Q3N?",
+     "<h3>What is Q3N?</h3>"
+     "<p>Q3N (Quote Triple-Slash Notation) is a plain-text format for storing quotations "
+     "with their source URIs. Each entry wraps quoted content between <code>///</code> and "
+     "<code>\\\\\\</code> delimiters, with the source URI on the opening line.</p>"
+     "<p>Think of it as a lightweight, human-readable citation database that lives in "
+     "normal text files — no database, no proprietary format, just text.</p>"),
+    ("The Format",
+     "<h3>Q3N in 30 seconds</h3>"
+     "<pre style='background:#f5f5f5;padding:8px;border-radius:4px;'>"
+     "/// https://example.com/article /// cite/article:\n"
+     "The quoted text goes here.\n"
+     "Multiple paragraphs are fine.\n"
+     "\\\\\\</pre>"
+     "<ul>"
+     "<li>Open with <code>/// &lt;source_uri&gt; [/// &lt;tag&gt;:]</code></li>"
+     "<li>Content in the middle — any text, multiple lines</li>"
+     "<li>Close with <code>\\\\\\</code> on its own line</li>"
+     "<li>Optional <code>#!q3n-format</code> header identifies the file</li>"
+     "<li>Tags use slash hierarchy: <code>cite/article</code>, <code>note/idea</code></li>"
+     "</ul>"),
+    ("Getting Started",
+     "<h3>Getting Started</h3>"
+     "<p>In Q3N Manager:</p>"
+     "<ol>"
+     "<li>Click <b>File → New</b> to create a blank collection, then <b>Save As</b> to name it.</li>"
+     "<li>Click <b>+ New</b> (or <b>+ Entry</b> in the toolbar) to open the entry wizard.</li>"
+     "<li>Pick a source type (web, book, DOI, etc.), enter the URI and optional tag, "
+     "paste the quote, and click Finish.</li>"
+     "<li>Click <b>Save</b> (Ctrl+S) to write to disk.</li>"
+     "</ol>"
+     "<p>Or open an existing file with <b>File → Open</b> (Ctrl+O).</p>"),
+    ("Viewing &amp; Editing",
+     "<h3>Viewing &amp; Editing</h3>"
+     "<p>Click any entry in the left list to see its full detail in the right panel:</p>"
+     "<ul>"
+     "<li><b>URI</b> — edit it inline; the ✓/⚠ badge validates it in real time</li>"
+     "<li><b>Open ↗</b> — opens the source URL in your browser</li>"
+     "<li><b>Tag</b> — edit the slash-hierarchy tag</li>"
+     "<li><b>Quote</b> — edit the quoted text</li>"
+     "<li><b>Q3N Source</b> — read-only view of the raw format</li>"
+     "<li>Click <b>Save</b> to commit edits, or <b>Revert</b> to discard</li>"
+     "</ul>"),
+    ("Search &amp; Filter",
+     "<h3>Search &amp; Filter</h3>"
+     "<p>Use the search bar at the top-left to filter entries in real time:</p>"
+     "<ul>"
+     "<li>Searches both the <b>quote text</b> and the <b>URI</b></li>"
+     "<li>Tick the <b>Regex</b> checkbox to use regular expressions "
+     "(e.g. <code>Stonewall|Liberation</code>)</li>"
+     "<li>Use the <b>tag dropdown</b> to filter by a specific tag</li>"
+     "<li>Press <b>Ctrl+F</b> to jump to the search bar</li>"
+     "</ul>"),
+    ("Exporting",
+     "<h3>Exporting</h3>"
+     "<p>Use the <b>Export</b> menu to save your collection in different formats:</p>"
+     "<ul>"
+     "<li><b>Q3N</b> — canonical round-trip format</li>"
+     "<li><b>JSON</b> — structured data with all metadata</li>"
+     "<li><b>Markdown</b> — blockquote format for wikis and notes</li>"
+     "<li><b>HTML</b> — self-contained webpage</li>"
+     "<li><b>Plain Text</b> — stripped of all markup</li>"
+     "<li><b>Fortune</b> — Unix fortune-cookie format</li>"
+     "<li><b>Anki CSV</b> — import directly into Anki for flashcards</li>"
+     "</ul>"
+     "<p>Use <b>Tools → Preview as JSON/Markdown</b> to see output before saving.</p>"),
+    ("URI Schemes",
+     "<h3>URI Schemes</h3>"
+     "<p>Q3N recognises many source types and extracts metadata automatically:</p>"
+     "<table style='border-collapse:collapse;'>"
+     "<tr><td style='padding:2px 8px;'>🌐 <code>https://</code></td><td>Web pages</td></tr>"
+     "<tr><td style='padding:2px 8px;'>📄 <code>file://</code></td><td>Local files (append <code>#line=N</code>)</td></tr>"
+     "<tr><td style='padding:2px 8px;'>📚 <code>isbn://</code></td><td>Books (ISBN;Title;Author;Year)</td></tr>"
+     "<tr><td style='padding:2px 8px;'>📖 <code>doi://</code></td><td>Academic papers</td></tr>"
+     "<tr><td style='padding:2px 8px;'>📋 <code>arxiv://</code></td><td>arXiv preprints</td></tr>"
+     "<tr><td style='padding:2px 8px;'>🎬 <code>yt://</code></td><td>YouTube videos</td></tr>"
+     "<tr><td style='padding:2px 8px;'>📖 <code>wikipedia://</code></td><td>Wikipedia articles</td></tr>"
+     "<tr><td style='padding:2px 8px;'>🐙 <code>github://</code></td><td>GitHub repos, issues, PRs</td></tr>"
+     "<tr><td style='padding:2px 8px;'>🗺️ <code>osm://</code></td><td>OpenStreetMap features</td></tr>"
+     "<tr><td style='padding:2px 8px;'>🗺️ <code>geo:</code></td><td>Geographic coordinates</td></tr>"
+     "</table>"),
+    ("Tips &amp; Next Steps",
+     "<h3>Tips &amp; Next Steps</h3>"
+     "<ul>"
+     "<li>Open a whole <b>directory</b> with <b>File → Open Directory</b> to browse across "
+     "multiple files at once</li>"
+     "<li>Use <b>Import</b> to merge Q3N, JSON, or plain-text files into the current "
+     "collection</li>"
+     "<li>The <b>Plugins</b> dock (right side) shows the Fortune and Cite panels — "
+     "use the tag/scheme filters in Fortune to explore your collection</li>"
+     "<li>Check <b>Tools → Statistics</b> for word counts, scheme breakdown, and tag "
+     "frequency</li>"
+     "<li>Configure defaults (citation style, theme, etc.) in "
+     "<b>Edit → Preferences</b></li>"
+     "<li>The <code>q3n</code> CLI provides the same features in the terminal — "
+     "run <code>q3n --help</code> or <code>man q3n</code></li>"
+     "</ul>"),
+]
+
+
+class StatsDialog(QDialog):
+    def __init__(self, entries, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Collection Statistics")
+        self.setMinimumSize(500, 450)
+        layout = QVBoxLayout(self)
+
+        if not entries:
+            layout.addWidget(QLabel("No entries loaded."))
+        else:
+            n = len(entries)
+            words = sum(len(e.quote.split()) for e in entries)
+            chars = sum(len(e.quote) for e in entries)
+            schemes = Counter(e.scheme for e in entries)
+            tags = Counter(e.tag for e in entries if e.tag)
+            from core.q3n import URI_PARSERS
+            domains = Counter()
+            for e in entries:
+                if e.scheme in ('https', 'http'):
+                    try:
+                        meta = URI_PARSERS[e.scheme](e.uri)
+                        if 'domain' in meta:
+                            domains[meta['domain']] += 1
+                    except (ValueError, KeyError, AttributeError):
+                        pass
+
+            def bar(count, total, width=20):
+                filled = int(width * count / total) if total else 0
+                return '█' * filled + '░' * (width - filled)
+
+            lines = [
+                f"{'Entries:':<16} {n}",
+                f"{'Words:':<16} {words:,}",
+                f"{'Characters:':<16} {chars:,}",
+                f"{'Avg words/entry:':<16} {words // n if n else 0}",
+                "",
+                "── Schemes ─────────────────────────",
+            ]
+            for scheme, count in schemes.most_common():
+                lines.append(f"  {scheme:<14} {count:>4}  {bar(count, n)}")
+            if tags:
+                lines += ["", "── Tags (top 15) ────────────────────"]
+                for tag, count in tags.most_common(15):
+                    label = (tag[:18] + '…') if len(tag) > 19 else tag
+                    lines.append(f"  {label:<20} {count:>4}  {bar(count, n)}")
+            if domains:
+                lines += ["", "── Domains (top 10) ─────────────────"]
+                for domain, count in domains.most_common(10):
+                    label = (domain[:23] + '…') if len(domain) > 24 else domain
+                    lines.append(f"  {label:<25} {count:>4}  {bar(count, n)}")
+
+            text = QTextEdit()
+            text.setReadOnly(True)
+            text.setPlainText('\n'.join(lines))
+            text.setStyleSheet("font-family: monospace; font-size: 12px;")
+            layout.addWidget(text)
+
+        btn = QPushButton("Close")
+        btn.clicked.connect(self.accept)
+        layout.addWidget(btn)
+
+
+class SettingsDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Preferences")
+        self.setMinimumWidth(480)
+        from core.config import get_config, config_path
+        self._cfg_path = config_path()
+        cfg = get_config()
+        layout = QVBoxLayout(self)
+
+        def section(title):
+            lbl = QLabel(f"<b>{title}</b>")
+            lbl.setStyleSheet("margin-top: 8px;")
+            layout.addWidget(lbl)
+
+        def row(form, label, widget):
+            form.addRow(QLabel(label), widget)
+            return widget
+
+        section("[core]")
+        form1 = QFormLayout()
+        self._scan_max = QLineEdit(cfg['core'].get('scan_max_bytes', '10485760'))
+        self._default_fmt = QLineEdit(cfg['core'].get('default_export_format', 'q3n'))
+        row(form1, "scan_max_bytes", self._scan_max)
+        row(form1, "default_export_format", self._default_fmt)
+        layout.addLayout(form1)
+
+        section("[gui]")
+        form2 = QFormLayout()
+        self._style_file = QLineEdit(cfg['gui'].get('style_file', ''))
+        self._style_file.setPlaceholderText("Leave empty for built-in Scriptorium theme")
+        self._remember = QCheckBox()
+        self._remember.setChecked(cfg['gui'].getboolean('remember_last_file', False))
+        row(form2, "style_file", self._style_file)
+        row(form2, "remember_last_file", self._remember)
+        layout.addLayout(form2)
+
+        section("[plugins]")
+        form3 = QFormLayout()
+        self._extra_dirs = QLineEdit(cfg['plugins'].get('extra_dirs', ''))
+        self._extra_dirs.setPlaceholderText("Comma-separated paths")
+        self._cite_style = QComboBox()
+        for s in ['apa', 'mla', 'chicago', 'bibtex']:
+            self._cite_style.addItem(s)
+        current = cfg['plugins'].get('default_citation_style', 'apa')
+        idx = self._cite_style.findText(current)
+        if idx >= 0:
+            self._cite_style.setCurrentIndex(idx)
+        row(form3, "extra_dirs", self._extra_dirs)
+        row(form3, "default_citation_style", self._cite_style)
+        layout.addLayout(form3)
+
+        note = QLabel(f"<i>Config file: {self._cfg_path}</i>")
+        note.setStyleSheet("font-size: 11px; color: #888; margin-top: 8px;")
+        layout.addWidget(note)
+
+        btns = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
+        btns.accepted.connect(self._save)
+        btns.rejected.connect(self.reject)
+        layout.addWidget(btns)
+
+    def _save(self):
+        import configparser
+        cfg = configparser.ConfigParser(interpolation=None)
+        cfg['core'] = {
+            'scan_max_bytes': self._scan_max.text().strip() or '10485760',
+            'default_export_format': self._default_fmt.text().strip() or 'q3n',
+        }
+        cfg['gui'] = {
+            'style_file': self._style_file.text().strip(),
+            'remember_last_file': 'true' if self._remember.isChecked() else 'false',
+        }
+        cfg['plugins'] = {
+            'extra_dirs': self._extra_dirs.text().strip(),
+            'default_citation_style': self._cite_style.currentText(),
+        }
+        try:
+            self._cfg_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self._cfg_path, 'w') as f:
+                cfg.write(f)
+            import core.config as _cc
+            _cc._CONFIG = None  # force reload on next access
+            self.accept()
+        except OSError as e:
+            QMessageBox.critical(self, "Error", f"Could not save settings:\n{e}")
+
+
+class TutorialDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Q3N Tutorial")
+        self.setMinimumSize(560, 420)
+        self._page = 0
+        layout = QVBoxLayout(self)
+
+        self._browser = QTextBrowser()
+        self._browser.setOpenExternalLinks(False)
+        layout.addWidget(self._browser)
+
+        nav = QHBoxLayout()
+        self._prev_btn = QPushButton("← Previous")
+        self._prev_btn.clicked.connect(self._prev)
+        self._next_btn = QPushButton("Next →")
+        self._next_btn.clicked.connect(self._next)
+        self._page_label = QLabel()
+        self._page_label.setAlignment(Qt.AlignCenter)
+        close_btn = QPushButton("Close")
+        close_btn.clicked.connect(self.accept)
+        nav.addWidget(self._prev_btn)
+        nav.addWidget(self._page_label, 1)
+        nav.addWidget(self._next_btn)
+        nav.addWidget(close_btn)
+        layout.addLayout(nav)
+        self._show_page()
+
+    def _show_page(self):
+        title, html = TUTORIAL_PAGES[self._page]
+        self._browser.setHtml(
+            f"<style>body{{font-family:sans-serif;font-size:13px;}} "
+            f"code{{background:#f0f0f0;padding:1px 4px;border-radius:3px;}} "
+            f"pre{{background:#f5f5f5;padding:8px;border-radius:4px;}} "
+            f"li{{margin-bottom:4px;}}</style>" + html)
+        total = len(TUTORIAL_PAGES)
+        self._page_label.setText(f"{self._page + 1} / {total}  —  {title}")
+        self._prev_btn.setEnabled(self._page > 0)
+        self._next_btn.setEnabled(self._page < total - 1)
+
+    def _prev(self):
+        if self._page > 0:
+            self._page -= 1
+            self._show_page()
+
+    def _next(self):
+        if self._page < len(TUTORIAL_PAGES) - 1:
+            self._page += 1
+            self._show_page()
+
+
+class ShortcutsDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Keyboard Shortcuts")
+        self.setMinimumSize(420, 380)
+        layout = QVBoxLayout(self)
+
+        shortcuts = [
+            ("Ctrl+N", "New file"),
+            ("Ctrl+O", "Open file"),
+            ("Ctrl+Shift+O", "Open directory"),
+            ("Ctrl+S", "Save"),
+            ("Ctrl+Shift+S", "Save As"),
+            ("Ctrl+Q", "Quit"),
+            ("Ctrl+F", "Focus search bar"),
+            ("Ctrl+Shift+F", "Toggle regex search"),
+            ("Ctrl+E", "Export (last format)"),
+            ("Ctrl+I", "Import Q3N file"),
+            ("Ctrl+W", "New entry wizard"),
+            ("Delete", "Delete selected entry"),
+            ("F1", "Tutorial"),
+            ("F5", "Statistics"),
+        ]
+
+        table = QTableWidget(len(shortcuts), 2)
+        table.setHorizontalHeaderLabels(["Shortcut", "Action"])
+        table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        table.verticalHeader().setVisible(False)
+        table.setEditTriggers(QTableWidget.NoEditTriggers)
+        table.setSelectionMode(QTableWidget.NoSelection)
+        for i, (key, desc) in enumerate(shortcuts):
+            k = QTableWidgetItem(key)
+            k.setFont(QFont("monospace"))
+            table.setItem(i, 0, k)
+            table.setItem(i, 1, QTableWidgetItem(desc))
+        layout.addWidget(table)
+
+        btn = QPushButton("Close")
+        btn.clicked.connect(self.accept)
+        layout.addWidget(btn)
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -281,9 +628,13 @@ class MainWindow(QMainWindow):
         self._search_input = QLineEdit()
         self._search_input.setPlaceholderText("Search quotes...")
         self._search_input.textChanged.connect(self._apply_filter)
+        self._regex_check = QCheckBox("Regex")
+        self._regex_check.setToolTip("Use regular expressions (Ctrl+Shift+F)")
+        self._regex_check.stateChanged.connect(self._apply_filter)
         self._tag_filter = TagFilterCombo()
         self._tag_filter.changed.connect(self._apply_filter)
         filter_row.addWidget(self._search_input, 1)
+        filter_row.addWidget(self._regex_check)
         filter_row.addWidget(self._tag_filter)
         left_layout.addLayout(filter_row)
 
@@ -326,14 +677,20 @@ class MainWindow(QMainWindow):
         file_menu = menubar.addMenu("&File")
         self._add_action(file_menu, "&New", "Ctrl+N", self._new_file)
         self._add_action(file_menu, "&Open...", "Ctrl+O", self._open_file)
+        self._add_action(file_menu, "Open &Directory...", "Ctrl+Shift+O", self._open_directory)
         file_menu.addSeparator()
         self._add_action(file_menu, "&Save", "Ctrl+S", self._save_file)
         self._add_action(file_menu, "Save &As...", "Ctrl+Shift+S", self._save_as)
         file_menu.addSeparator()
         self._add_action(file_menu, "&Quit", "Ctrl+Q", self.close)
 
+        edit_menu = menubar.addMenu("&Edit")
+        self._add_action(edit_menu, "&New Entry...", "Ctrl+W", self._add_entry)
+        edit_menu.addSeparator()
+        self._add_action(edit_menu, "&Preferences...", None, self._show_settings)
+
         import_menu = menubar.addMenu("&Import")
-        self._add_action(import_menu, "Import Q3N File...", None, self._import_q3n)
+        self._add_action(import_menu, "Import Q3N File...", "Ctrl+I", self._import_q3n)
         self._add_action(import_menu, "Import JSON...", None, self._import_json)
         self._add_action(import_menu, "Import Plain Text...", None, self._import_txt)
 
@@ -345,8 +702,11 @@ class MainWindow(QMainWindow):
         self._add_action(export_menu, "Export as Plain Text...", None, lambda: self._export('txt'))
         self._add_action(export_menu, "Export Index...", None, lambda: self._export('index'))
         self._add_action(export_menu, "Export as Fortune...", None, lambda: self._export('fortune'))
+        self._add_action(export_menu, "Export as Anki CSV...", None, lambda: self._export('anki'))
 
         tools_menu = menubar.addMenu("&Tools")
+        self._add_action(tools_menu, "Statistics...", "F5", self._show_stats)
+        tools_menu.addSeparator()
         self._add_action(tools_menu, "Preview as JSON", None, self._preview_json)
         self._add_action(tools_menu, "Preview as Markdown", None, self._preview_md)
         self._add_action(tools_menu, "Preview Index", None, self._preview_index)
@@ -360,13 +720,22 @@ class MainWindow(QMainWindow):
         self._view_menu.setEnabled(False)
 
         help_menu = menubar.addMenu("&Help")
+        self._add_action(help_menu, "&Tutorial...", "F1", self._show_tutorial)
+        self._add_action(help_menu, "&Keyboard Shortcuts...", None, self._show_shortcuts)
+        help_menu.addSeparator()
         self._add_action(help_menu, "&About Q3N Manager", None, self._show_about)
         self._add_action(help_menu, "About &Qt", None, QApplication.aboutQt)
 
-        search_action = QAction("Focus Search", self)
-        search_action.setShortcut("Ctrl+F")
-        search_action.triggered.connect(lambda: self._search_input.setFocus())
-        self.addAction(search_action)
+        for shortcut, slot in [
+            ("Ctrl+F", lambda: self._search_input.setFocus()),
+            ("Ctrl+Shift+F", lambda: self._regex_check.setChecked(
+                not self._regex_check.isChecked())),
+            ("Delete", self._delete_entry),
+        ]:
+            act = QAction(self)
+            act.setShortcut(shortcut)
+            act.triggered.connect(slot)
+            self.addAction(act)
 
     def _add_action(self, menu, label, shortcut, slot):
         action = QAction(label, self)
@@ -393,14 +762,27 @@ class MainWindow(QMainWindow):
         self._notify_plugins(self._all_entries)
 
     def _apply_filter(self):
-        search = self._search_input.text().lower()
+        search = self._search_input.text()
         tag_filter = self._tag_filter.selected_tag()
+        use_regex = self._regex_check.isChecked()
+
+        pat = None
+        if search and use_regex:
+            try:
+                pat = re.compile(search, re.IGNORECASE)
+                self._search_input.setStyleSheet("")
+            except re.error:
+                self._search_input.setStyleSheet("border-color: #e74c3c;")
+                pat = None
 
         def matches(e):
             if tag_filter and e.tag != tag_filter:
                 return False
-            if search and search not in e.quote.lower() and search not in e.uri.lower():
-                return False
+            if search:
+                if pat:
+                    return bool(pat.search(e.quote) or pat.search(e.uri))
+                return (search.lower() in e.quote.lower()
+                        or search.lower() in e.uri.lower())
             return True
 
         filtered = [e for e in self._all_entries if matches(e)]
@@ -620,10 +1002,12 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Export", "No entries to export.")
             return
         ext_map = {'q3n': 'q3n', 'json': 'json', 'md': 'md',
-                   'html': 'html', 'txt': 'txt', 'index': 'md', 'fortune': 'txt'}
+                   'html': 'html', 'txt': 'txt', 'index': 'md',
+                   'fortune': 'txt', 'anki': 'csv'}
         name_map = {
             'q3n': 'Q3N File', 'json': 'JSON', 'md': 'Markdown',
-            'html': 'HTML', 'txt': 'Plain Text', 'index': 'Index', 'fortune': 'Fortune'}
+            'html': 'HTML', 'txt': 'Plain Text', 'index': 'Index',
+            'fortune': 'Fortune', 'anki': 'Anki CSV'}
         path, _ = QFileDialog.getSaveFileName(
             self, f"Export as {name_map[fmt]}", '',
             f"{name_map[fmt]} Files (*.{ext_map[fmt]});;All Files (*)")
@@ -717,6 +1101,43 @@ class MainWindow(QMainWindow):
         for widget in self._plugin_panels.values():
             if hasattr(widget, 'set_entries'):
                 widget.set_entries(entries)
+
+    def _open_directory(self):
+        if not self._confirm_save():
+            return
+        path = QFileDialog.getExistingDirectory(self, "Open Q3N Directory", '')
+        if not path:
+            return
+        try:
+            from core.q3n import list_entries
+            results = list_entries(path)
+            if not results:
+                QMessageBox.information(self, "Open Directory",
+                    "No Q3N files found in that directory.")
+                return
+            all_entries = [e for _, entries in results for e in entries]
+            self._file_path = None
+            self._modified = False
+            self._load_entries(all_entries)
+            n_files = len(results)
+            self.setWindowTitle(
+                f"Q3N Manager - {Path(path).name}/ ({n_files} file{'s' if n_files != 1 else ''})")
+            self._status.showMessage(
+                f"Loaded {len(all_entries)} entries from {n_files} files")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open directory:\n{e}")
+
+    def _show_stats(self):
+        StatsDialog(self._all_entries, self).exec()
+
+    def _show_settings(self):
+        SettingsDialog(self).exec()
+
+    def _show_tutorial(self):
+        TutorialDialog(self).exec()
+
+    def _show_shortcuts(self):
+        ShortcutsDialog(self).exec()
 
     def _show_about(self):
         QMessageBox.about(self, "About Q3N Manager",

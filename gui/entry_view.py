@@ -100,10 +100,20 @@ class EntryDetailView(QWidget):
         self._quote_label = QLabel("Quote")
         self._quote_input = QTextEdit()
         self._quote_input.setPlaceholderText("Quoted text content...")
-        self._quote_input.setMinimumHeight(200)
+        self._quote_input.setMinimumHeight(160)
         self._quote_input.textChanged.connect(self._mark_dirty)
         form.addWidget(self._quote_label)
         form.addWidget(self._quote_input)
+
+        self._source_label = QLabel("Q3N Source")
+        self._source_label.setStyleSheet("font-size: 11px; color: #888; margin-top: 6px;")
+        self._source_view = QTextEdit()
+        self._source_view.setReadOnly(True)
+        self._source_view.setMaximumHeight(90)
+        self._source_view.setStyleSheet(
+            "font-family: monospace; font-size: 11px; background: #f8f8f8; color: #555;")
+        form.addWidget(self._source_label)
+        form.addWidget(self._source_view)
 
         layout.addLayout(form)
 
@@ -209,6 +219,9 @@ class EntryDetailView(QWidget):
             q = meta['query']
             meta_parts.append(f'query: {q[:50]}{"…" if len(q) > 50 else ""}')
         self._metadata_value.setText(' · '.join(meta_parts) if meta_parts else '')
+        tag_part = f' /// {entry.tag}:' if entry.tag else ''
+        self._source_view.setPlainText(
+            f'/// {entry.uri}{tag_part}\n{entry.quote}\n\\\\\\')
         self.set_enabled(True)
 
     def clear(self):
@@ -223,6 +236,7 @@ class EntryDetailView(QWidget):
         self._category_label.setVisible(False)
         self._metadata_value.clear()
         self._validation_label.setText('')
+        self._source_view.clear()
         self.set_enabled(False)
 
     def _open_url(self):
