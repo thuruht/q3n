@@ -1,4 +1,4 @@
-# Q3N Specification (v1.1.4)
+# Q3N Specification (v1.1.5)
 
 This document provides the formal specification for the Quote Triple-Slash Notation (Q3N) format.
 
@@ -104,4 +104,4 @@ A file is recognised as Q3N if any of:
 - v1.0: Initial specification
 - v1.1.0: Added `pubmed://`, `spotify://`, `orcid://`, `osm://`, `geo:`, `overpass://` schemes; formalised tag syntax
 - v1.1.3: Clarified `geo:` colon-only syntax
-- v1.1.4: Added `wikipedia://`, `github://` schemes; inline `\\\` closing; Anki export format
+- v1.1.5: Added `wikipedia://`, `github://` schemes; Anki export plugin; audit remediation (dirty-flag fix, export dispatch, JS osm/geo/overpass, config interpolation, dead code removal)
