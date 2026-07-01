@@ -59,13 +59,15 @@ Multiple paragraphs are fine.
 
 Run `./bin/q3n-gui` to launch the Q3N Manager, a PySide6-based graphical browser and editor.
 
+Features: regex search (Ctrl+Shift+F), directory mode (File → Open Directory), tag/scheme filtering, entry wizard, export to all formats, statistics (F5), preferences, tutorial (F1), Fortune and Cite plugin panels.
+
 ## URI schemes
 
-`https://`, `http://`, `file://`, `isbn://`, `doi://`, `arxiv://`, `pubmed://`, `yt://`, `spotify://`, `orcid://`, `q3n://`, `osm://`, `geo:`, `overpass://`
+`https://`, `http://`, `file://`, `isbn://`, `doi://`, `arxiv://`, `pubmed://`, `yt://`, `spotify://`, `orcid://`, `q3n://`, `wikipedia://`, `github://`, `osm://`, `geo:`, `overpass://`
 
 ## Export formats
 
-- Q3N, JSON, Markdown, HTML, Plain text, Markdown index, Fortune
+Q3N, JSON, Markdown, HTML, Plain text, Markdown index, Fortune, Anki CSV (`-f anki`)
 
 ## License
 

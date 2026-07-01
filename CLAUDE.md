@@ -50,7 +50,7 @@ The entire format engine lives here — no GUI dependencies. Key types and funct
 - **`detect(path) → bool`** — identifies Q3N files by extension first, then content (capped at 1MB). Used for single-file detection.
 - **`list_entries(directory)`** — recursively discovers Q3N files by extension only (fast; no content scanning of unrecognized files).
 
-URI parsing is scheme-dispatched via `URI_PARSERS` dict; schemes: `https`, `http`, `isbn`, `q3n`, `doi`, `arxiv`, `yt`, `file`, `pubmed`, `orcid`, `spotify`, `osm`, `geo`, `overpass`. Each returns a `meta` dict.
+URI parsing is scheme-dispatched via `URI_PARSERS` dict; schemes: `https`, `http`, `isbn`, `q3n`, `doi`, `arxiv`, `yt`, `file`, `pubmed`, `orcid`, `spotify`, `wikipedia`, `github`, `osm`, `geo`, `overpass`. Each returns a `meta` dict.
 
 ### CLI (`tools/q3n`)
 
@@ -77,11 +77,11 @@ Key GUI components:
 - `MainWindow` — QSplitter with list (left) + edit panel (right) + plugin dock (right, `QDockWidget`/`QTabWidget`). `_notify_plugins(entries)` pushes entries to all panel widgets on file load/edit. `_validate_file()` shows a URI validation report dialog.
 - `EntryListModel` — in-memory `QAbstractListModel` wrapping `list[Q3NEntry]`
 - `EntryDetailView` — edit panel with inline URI validation label (✓ / ⚠), "Open ↗" button, scheme/category badges, metadata display. Emits `entry_changed(row, entry)` signal.
-- `EntryWizard` — 5-page QWizard for new entries (scheme → URI → tag → content → review); includes osm/geo/overpass source types
+- `EntryWizard` — 5-page QWizard for new entries (scheme → URI → tag → content → review); includes all URI schemes including wikipedia/github/osm/geo/overpass
 
 ### JavaScript implementation (`src/js/q3n-parser.js`)
 
-A parallel JS port of the core library with identical format semantics. Works in both Node.js (CLI: `extract`, `validate`, `json`, `fortune`) and browser (`window.Q3NParser`). Supports all URI schemes including `osm`, `geo`, `overpass`.
+A parallel JS port of the core library with identical format semantics. Works in both Node.js (CLI: `extract`, `validate`, `json`, `fortune`) and browser (`window.Q3NParser`). Supports all URI schemes including `osm`, `geo`, `overpass`, `wikipedia`, `github`.
 
 ### Fortune integration (`core/fortune.py`)
 
@@ -181,9 +181,9 @@ Exception: `open_path` in `gui/` may legitimately catch broad exceptions, but mu
 
 ### JS and Python must stay in parity
 
-The JS parser (`src/js/q3n-parser.js`) should support every URI scheme the Python parser does. Currently the JS parser is missing `osm://`, `geo:`, `overpass://`. Before claiming JS supports a scheme in docs, implement it.
+The JS parser (`src/js/q3n-parser.js`) should support every URI scheme the Python parser does. Before claiming JS supports a scheme in docs, implement it.
 
-There are **two identical copies** of the JS parser: `src/js/q3n-parser.js` and `web/public/q3n-parser.js`. Fix both, or symlink one to the other.
+`web/public/q3n-parser.js` is a symlink to `src/js/q3n-parser.js` — edit only the source file.
 
 ### `setup.py` must include all packages
 
