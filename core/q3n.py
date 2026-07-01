@@ -22,6 +22,8 @@ SCHEME_REGISTRY = {
     'osm': 'map',
     'geo': 'map',
     'overpass': 'map',
+    'wikipedia': 'web',
+    'github': 'web',
 }
 
 RECOGNIZED_EXTENSIONS = {'.q3n', '.q3nt', '.quotation', '.quotes'}
@@ -135,10 +137,7 @@ def parse_yt_uri(uri):
         if base and not result.get('video_id'):
             result['video_id'] = base
     else:
-        if rest.startswith('watch?v='):
-            result['video_id'] = rest.split('=')
-        else:
-            result['video_id'] = rest
+        result['video_id'] = rest
     return result
 
 
@@ -218,6 +217,53 @@ def parse_overpass_uri(uri):
     }
 
 
+def parse_wikipedia_uri(uri):
+    rest = uri.replace('wikipedia://', '')
+    parts = rest.split('/', 1)
+    lang = None
+    article = rest
+    if '/' in rest and len(parts[0]) == 2:
+        lang = parts[0]
+        article = parts[1]
+    browse_url = (
+        f'https://{lang}.wikipedia.org/wiki/{article}'
+        if lang else f'https://en.wikipedia.org/wiki/{article}'
+    )
+    return {
+        'type': 'web',
+        'article': article,
+        'lang': lang or 'en',
+        'browse_url': browse_url,
+    }
+
+
+def parse_github_uri(uri):
+    rest = uri.replace('github://', '')
+    parts = rest.split('/')
+    owner = parts[0] if len(parts) >= 1 else ''
+    repo = parts[1] if len(parts) >= 2 else ''
+    kind = None
+    kind_id = None
+    label = f'{owner}/{repo}'
+    if len(parts) >= 4:
+        kind = parts[2]
+        kind_id = parts[3]
+        label = f'{owner}/{repo}/{kind}/{kind_id}'
+    browse_url = f'https://github.com/{owner}/{repo}'
+    if kind:
+        browse_url += f'/{kind}/{kind_id}'
+    return {
+        'type': 'web',
+        'platform': 'github',
+        'owner': owner,
+        'repo': repo,
+        'kind': kind,
+        'id': kind_id,
+        'label': label,
+        'browse_url': browse_url,
+    }
+
+
 URI_PARSERS = {
     'q3n': parse_q3n_uri,
     'isbn': parse_isbn_uri,
@@ -234,6 +280,8 @@ URI_PARSERS = {
     'osm': parse_osm_uri,
     'geo': parse_geo_uri,
     'overpass': parse_overpass_uri,
+    'wikipedia': parse_wikipedia_uri,
+    'github': parse_github_uri,
 }
 
 
@@ -312,6 +360,16 @@ def validate_uri(uri: str) -> list:
         if not path:
             errors.append('file URI must have a non-empty path')
 
+    elif scheme == 'wikipedia':
+        article = uri.replace('wikipedia://', '').split('/', 1)[-1] if '/' in uri.replace('wikipedia://', '', 1) else uri.replace('wikipedia://', '')
+        if not article:
+            errors.append('wikipedia URI must have a non-empty article title')
+
+    elif scheme == 'github':
+        parts = uri.replace('github://', '').split('/')
+        if len(parts) < 2 or not parts[0] or not parts[1]:
+            errors.append('github URI must have owner/repo format')
+
     return errors
 
 
@@ -350,6 +408,14 @@ def resolve_uri(uri_data):
             return f"— {meta['domain']}"
     elif scheme in ('yt', 'youtube'):
         return f"— YouTube"
+    elif scheme == 'wikipedia':
+        if 'article' in meta:
+            lang = meta.get('lang', 'en').upper()
+            article = meta['article'].replace('_', ' ')
+            return f"— Wikipedia ({lang}): {article}"
+    elif scheme == 'github':
+        if 'label' in meta:
+            return f"— GitHub: {meta['label']}"
     return f"— {uri_data.get('uri', '')}"
 
 
@@ -380,7 +446,7 @@ class Q3NEntry:
         if parser:
             try:
                 r['meta'] = parser(self.uri)
-            except Exception:
+            except (ValueError, AttributeError, TypeError, KeyError):
                 pass
         if 'meta' not in r:
             if self.scheme in ('https', 'http'):
@@ -609,6 +675,10 @@ def export_file(entries, path, fmt='q3n'):
         from core.fortune import export_fortune
         text = export_fortune(entries)
         path.write_text(text, encoding='utf-8')
+    elif fmt == 'anki':
+        from app.plugins.anki.export import export_anki_csv
+        text = export_anki_csv(entries)
+        path.write_text(text, encoding='utf-8')
 
 
 def detect(path):
@@ -627,7 +697,7 @@ def detect(path):
             return True
         if re.search(r'^///\s+\S+', text, re.MULTILINE):
             return True
-    except Exception:
+    except (OSError, UnicodeDecodeError, re.error):
         pass
     return False
 
@@ -640,6 +710,6 @@ def list_entries(directory='.'):
                 entries = parse_file(p)
                 if entries:
                     results.append((p, entries))
-            except Exception:
+            except (OSError, UnicodeDecodeError, ValueError):
                 pass
     return results

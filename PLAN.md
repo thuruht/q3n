@@ -98,6 +98,84 @@ Note: CI auto-deploy via wrangler is not yet wired; deployments are currently ma
 
 ---
 
+## Iteration 7 — Audit Remediation (All 23 Issues)
+
+**Goal:** Fix every issue identified in the June 2026 project-wide audit. Each sub-iteration is ordered by impact (critical first). Tests must pass before and after each block.
+
+### Block A — Critical bugs (5 issues)
+
+- [x] **A1 — CLI export broken for html/index/fortune** (`tools/q3n:643-654`)
+  Fix: Replace inline format dispatch with call to `core.q3n.export_file(entries, path, fmt)` — eliminates duplicate logic and all three broken formats at once. Update argparse choices if needed.
+
+- [x] **A2 — GUI dirty-flag bug on entry switch** (`gui/entry_view.py:143-149`)
+  Fix: Wrap `show_entry()` field population with `blockSignals(True/False)` so `setText`/`setPlainText` doesn't trigger `_mark_dirty`. Set `_dirty = False` after all fields are populated.
+
+- [x] **A3 — app/ package excluded from pip install** (`setup.py:12`)
+  Fix: Change `find_packages(include=['core', 'core.*', 'gui', 'gui.*'])` to `find_packages()` (includes `app`, `app.plugins.*`, `app.src.*`). Ensure `MANIFEST.in` or `package_data` covers non-.py files in `app/`.
+
+- [x] **A4 — q3n.png not tracked in git, breaks debian/rules** (`scripts/AppDir/q3n.png`, `.gitignore:52`)
+  Fix: Remove `scripts/AppDir/q3n.png` from `.gitignore` and `git add` it. Or move icon to a tracked location and update `debian/rules` path.
+
+- [x] **A5 — JS parser missing osm/geo/overpass schemes** (`src/js/q3n-parser.js`)
+  Fix: Implement `parseOsmUri`, `parseGeoUri`, `parseOverpassUri` in JS. Register in `URI_PARSERS` and `SCHEME_CATEGORIES`. Add tests to `test-q3n-parser.js`. Copy same fix to `web/public/q3n-parser.js`.
+
+### Block B — High-impact bugs (6 issues)
+
+- [x] **B1 — ConfigParser % interpolation crash** (`core/config.py:46`)
+  Fix: `configparser.ConfigParser(interpolation=None)` — prevents crash when config values contain `%`.
+
+- [x] **B2 — parse_yt_uri dead code + list-vs-string bug** (`core/q3n.py:138-139`)
+  Fix: Remove unreachable `if rest.startswith('watch?v=')` branch. The `?` branch handles this case correctly via `parse_qs`.
+
+- [x] **B3 — Bare `except Exception: pass` in 3 locations** (`core/q3n.py:383,630,643`)
+  Fix: Narrow to specific exception types (`OSError`, `ValueError`, `json.JSONDecodeError`, etc.). Never catch `KeyboardInterrupt` or `MemoryError`.
+
+- [x] **B4 — Delete dead `entry_dialog.py`** (`gui/entry_dialog.py`)
+  Fix: Remove file. Update `ARCHITECTURE.md` if it references `EntryDialog`.
+
+- [x] **B5 — Silent failure in `open_path`** (`gui/main_window.py:530-531`)
+  Fix: Replace bare `except Exception: pass` with error dialog via `QMessageBox.critical` (same pattern as `_open_file` at line 483-484).
+
+- [x] **B6 — Plugin dock can't be restored after close** (`gui/main_window.py:697-706`)
+  Fix: Add View menu action to toggle plugin dock visibility. Use `QMenu.addAction(dock.toggleViewAction())`.
+
+### Block C — Documentation fixes (5 issues)
+
+- [x] **C1 — Man page stale** (`docs/man/q3n.1`)
+  Fix: Bump header version to 1.1.4. List all 7 export formats in `export` section. Add `-c`/`--count` and `--art` to `fortune` section. Add `--version` to SYNOPSIS.
+
+- [x] **C2 — ARCHITECTURE.md inaccuracies** (`ARCHITECTURE.md`)
+  Fix: Add `config` to subcommand list. Fix JS API method names (`toJSON` → `exportJson`, etc.). Remove false claim that JS supports osm/geo/overpass (or mark as incomplete).
+
+- [x] **C3 — Specification.md stale** (`docs/format/specification.md`)
+  Fix: Bump version to v1.1.4. Move OSM/GIS scheme addition from v1.1.3 to v1.1.0 in version history. Add EBNF rule for inline `\\\` closing.
+
+- [x] **C4 — CLI lint scope mismatch** (`CLAUDE.md:19-20` vs `.github/workflows/ci.yml:32-33`)
+  Fix: Either add `app/plugins/` and `gui/` to CI lint command, or update CLAUDE.md to match actual CI scope.
+
+- [x] **C5 — BUILDING.md wrong AppImage method** (`BUILDING.md:47-61`)
+  Fix: Replace `pyside6-deploy`/`pyproject-appimage` instructions with the actual PyInstaller-based build (`scripts/q3n.spec` + `scripts/build-appimage.sh`).
+
+### Block D — Packaging gaps (6 issues)
+
+- [x] **D1 — q3n.appdata.xml version outdated** (`q3n.appdata.xml:30`)
+  Fix: Add `<release version="1.1.4" date="2026-06-30">` entry.
+
+- [x] **D2 — debian/rules hardcodes Python 3.13** (`debian/rules:9`)
+  Fix: Use `$(shell ls build/scripts-* 2>/dev/null)` or `find` instead of hardcoded `build/scripts-3.13`.
+
+- [x] **D3 — Git tag v1.1.0 missing** (debian/changelog vs tags)
+  Fix: Create annotated tag `v1.1.0` at the appropriate commit, or remove the changelog entry.
+
+- [x] **D4 — CI never installs PySide6** (`.github/workflows/ci.yml:26-28`)
+  Fix: Add `pip install PySide6` or create `requirements.txt` with core deps. Import tests for GUI won't work without it.
+
+- [x] **D5 — q3n config --install path resolution** (`tools/q3n:1073-1076`)
+  Fix: When `tools/q3n` is installed to `/usr/bin/`, `repo_root` resolves wrong. Add fallback to search `sys.path` or `__file__`-relative paths for `examples/`.
+
+- [x] **D6 — JS parser files are duplicated** (`src/js/q3n-parser.js` and `web/public/q3n-parser.js`)
+  Fix: Either symlink `web/public/q3n-parser.js` → `../../src/js/q3n-parser.js`, or use a build step to copy, or add a CI check that they're identical.
+
 ## Ongoing: Documentation Sync Discipline
 
 After every code change that touches public API or CLI behaviour:
@@ -111,3 +189,59 @@ After every code change that touches public API or CLI behaviour:
 | New test file | `CLAUDE.md` testing conventions section |
 
 The CI `docs` job only checks that the files exist — a future iteration should add a linting step that catches stale scheme lists.
+
+---
+
+## Iteration 8 — New Features
+
+### Block E — URI Schemes (2 additions)
+
+**E1 — `wikipedia://` scheme** (~30 min)
+
+Syntax: `wikipedia://Article_Title` or `wikipedia://en/Article_Title`
+
+`parse_wikipedia_uri()` strips scheme, splits optional language prefix, returns `{'type': 'web', 'article': title, 'lang': lang, 'browse_url': ...}`. Registered in `SCHEME_REGISTRY` as `'web'` and `URI_PARSERS`. Validated for non-empty title. Standard 11-file touch pattern (core, CLI colors/icons/wizard/help, GUI wizard/types/icons, fortune pick_art, tests, JS).
+
+**E2 — `github://` scheme** (~45 min)
+
+Syntax: `github://user/repo`, `github://user/repo/issues/123`, `github://user/repo/pull/45`, `github://user/repo/commit/abc123`, `github://user/repo/discussions/7`
+
+`parse_github_uri()` extracts owner/repo, optional kind/id, builds `browse_url` + `label`. Validates non-empty owner/repo. Same 11-file touch pattern.
+
+### Block F — Export Plugins (2 additions)
+
+**F1 — Anki export plugin** (`app/plugins/anki/` ~2 hrs)
+
+CSV export compatible with Anki import (fields: Quote, Source, Tag, URI). Optional `.apkg` via `genanki`. Registered as `anki` format in `export_file()`. Plugin: `__init__.py` + `panel.py` + `export.py`. Optional dep in `setup.py extras_require`.
+
+**F2 — Obsidian export plugin** (`app/plugins/obsidian/` ~1.5 hrs)
+
+Individual `.md` files per entry with YAML frontmatter (source, scheme, tag, created) + blockquote body. Tag→folder mapping option. Registered as `obsidian` format in `export_file()`.
+
+### Block G — Tag management CLI (~2 hrs)
+
+Subcommands: `q3n tag list [dir]`, `q3n tag show <tag> [dir]`, `q3n tag rename <old> <new> [dir]`, `q3n tag delete <tag> [dir]`, `q3n tag merge <from> <into> [dir]`. Reuses stats counting, in-place file rewrite with confirmation prompts.
+
+### Block H — LLM auto-tagging plugin (`app/plugins/autotag/` ~2 hrs)
+
+Sends quote text + URI to OpenAI-compatible endpoint, parses response into tag suggestions. Accept/reject per tag in GUI panel. API key/config in `q3n.conf`. CLI: `--dry-run` flag.
+
+### Block I — Capture daemon + global hotkey + browser extension (~4 hrs)
+
+Daemon (`bin/q3n-capture-daemon`): lightweight HTTP server on localhost:9876, receives `{url, quote, tag, title}` via POST, appends to Q3N file.
+
+Global hotkey script (`bin/q3n-capture`): registers `Ctrl+Shift+Q`, reads clipboard, opens popup, saves via daemon.
+
+Browser extension (Chrome/Firefox): right-click "Save to Q3N" sends `{url, selectionText, title}` to daemon. No popup form (MVP). Tags as `web/clippings`.
+
+### Implementation order
+
+| # | Feature | Effort |
+|---|---------|--------|
+| 1 | `wikipedia://` scheme | 30 min |
+| 2 | `github://` scheme | 45 min |
+| 3 | Tag management CLI | 2 hrs |
+| 4 | Anki export plugin | 2 hrs |
+| 5 | Obsidian export plugin | 1.5 hrs |
+| 6 | LLM auto-tagging plugin | 2 hrs |
+| 7 | Capture daemon + hotkey + browser extension | 4 hrs |

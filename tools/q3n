@@ -102,6 +102,8 @@ SCHEME_COLORS = {
     'osm': green,
     'geo': green,
     'overpass': green,
+    'wikipedia': blue,
+    'github': green,
 }
 
 SCHEME_ICONS = {
@@ -120,6 +122,8 @@ SCHEME_ICONS = {
     'osm': '🗺️',
     'geo': '🗺️',
     'overpass': '🗺️',
+    'wikipedia': '📖',
+    'github': '🐙',
 }
 
 BANNER = """\
@@ -640,25 +644,35 @@ def cmd_export(args):
         print(f'{red(SYM["cross"])} No entries to export')
         return 1
 
-    if args.format == 'json':
-        output = export_json(entries)
-    elif args.format == 'md':
-        output = export_markdown(entries)
-    elif args.format == 'txt':
-        output = export_plaintext(entries)
-    elif args.format == 'q3n':
+    if not args.output:
+        # stdout — inline dispatch for all formats
         from core.q3n import serialize
-        output = serialize(entries)
-    else:
-        print(f'{red(SYM["cross"])} Unknown format: {args.format}')
-        return 1
-
-    if args.output:
-        Path(args.output).write_text(output, encoding='utf-8')
-        print(f'  {green(SYM["check"])} {plural(len(entries), "entry")} '
-              f'exported → {cyan(args.output)}')
-    else:
+        if args.format == 'json':
+            output = export_json(entries)
+        elif args.format == 'md':
+            output = export_markdown(entries)
+        elif args.format == 'txt':
+            output = export_plaintext(entries)
+        elif args.format == 'q3n':
+            output = serialize(entries)
+        elif args.format == 'anki':
+            from app.plugins.anki.export import export_anki_csv
+            output = export_anki_csv(entries)
+        else:
+            print(f'{red(SYM["cross"])} Unknown format: {args.format}')
+            return 1
         print(output)
+        return 0
+
+    # File output — delegate to export_file which handles all formats
+    from core.q3n import export_file
+    try:
+        export_file(entries, args.output, args.format)
+    except Exception as e:
+        print(f'{red(SYM["cross"])} Export failed: {e}')
+        return 1
+    print(f'  {green(SYM["check"])} {plural(len(entries), "entry")} '
+          f'exported → {cyan(args.output)}')
     return 0
 
 
@@ -1074,6 +1088,10 @@ def cmd_config(args):
         repo_root = Path(__file__).resolve().parent.parent
         conf_example = repo_root / 'examples' / 'q3n.conf.example'
         qss_example = repo_root / 'examples' / 'style.qss.example'
+        if not conf_example.exists():
+            installed_root = Path(sys.prefix) / 'share' / 'q3n'
+            conf_example = installed_root / 'q3n.conf.example'
+            qss_example = installed_root / 'style.qss.example'
         cfg_dir = cfg_path.parent
         cfg_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1156,7 +1174,7 @@ def main():
     p.add_argument('file', help='Source Q3N file')
     p.add_argument('-o', '--output', help='Output file')
     p.add_argument('-f', '--format', default=_default_export_fmt,
-                   choices=['q3n', 'json', 'md', 'html', 'txt', 'index', 'fortune'],
+                   choices=['q3n', 'json', 'md', 'html', 'txt', 'index', 'fortune', 'anki'],
                    help=f'Export format (default: {_default_export_fmt})')
 
     # import

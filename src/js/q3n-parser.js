@@ -2,7 +2,8 @@
  * q3n-parser.js — JavaScript implementation of Q3N (Quote Triple-Slash Notation)
  *
  * Parses, serializes, detects, and resolves Q3N-formatted text with
- * scheme-specific URI parsers (https, http, q3n, isbn, doi, arxiv, file, yt).
+ * scheme-specific URI parsers (https, http, q3n, isbn, doi, arxiv, file, yt,
+ * pubmed, orcid, spotify, osm, geo, overpass).
  *
  * Usage (Node.js CLI):
  *   node q3n-parser.js extract <file>    Extract Q3N snippets
@@ -27,6 +28,11 @@ const SCHEME_CATEGORIES = {
   yt: 'media',
   youtube: 'media',
   spotify: 'media',
+  osm: 'map',
+  geo: 'map',
+  overpass: 'map',
+  wikipedia: 'web',
+  github: 'web',
 };
 
 const RECOGNIZED_EXTENSIONS = ['.q3n', '.q3nt', '.quotation', '.quotes'];
@@ -57,7 +63,14 @@ function detectContentType(quote) {
 
 function parseScheme(uri) {
   const idx = uri.indexOf('://');
-  return idx === -1 ? ['', uri] : [uri.slice(0, idx), uri.slice(idx + 3)];
+  if (idx !== -1) return [uri.slice(0, idx), uri.slice(idx + 3)];
+  // Colon-only scheme (e.g. geo:51.5074,-0.1278)
+  const colon = uri.indexOf(':');
+  if (colon !== -1) {
+    const scheme = uri.slice(0, colon);
+    if (/^[a-zA-Z][a-zA-Z0-9+\-.]*$/.test(scheme)) return [scheme, uri.slice(colon + 1)];
+  }
+  return ['', uri];
 }
 
 function parseWebUri(uri) {
@@ -175,6 +188,85 @@ function parseFileUri(uri) {
   }
 }
 
+function parseOsmUri(uri) {
+  const path = uri.replace('osm://', '');
+  const parts = path.split('/');
+  const objType = parts[0] || 'node';
+  const objId = parts.slice(1).join('/') || '';
+  return {
+    type: objType,
+    id: objId,
+    browseUrl: `https://www.openstreetmap.org/${objType}/${objId}`,
+    apiUrl: `https://api.openstreetmap.org/api/0.6/${objType}/${objId}`,
+  };
+}
+
+function parseGeoUri(uri) {
+  const rest = uri.replace('geo:', '');
+  const qIdx = rest.indexOf('?');
+  const coordStr = qIdx === -1 ? rest : rest.slice(0, qIdx);
+  const result = {};
+  const comma = coordStr.indexOf(',');
+  if (comma !== -1) {
+    const lat = parseFloat(coordStr.slice(0, comma));
+    const lon = parseFloat(coordStr.slice(comma + 1));
+    if (!isNaN(lat) && !isNaN(lon)) {
+      result.lat = lat;
+      result.lon = lon;
+    }
+  }
+  let zoom = 14;
+  if (qIdx !== -1) {
+    const qs = new URLSearchParams(rest.slice(qIdx + 1));
+    const z = parseInt(qs.get('z'), 10);
+    if (!isNaN(z)) zoom = z;
+  }
+  if (result.lat !== undefined) {
+    result.zoom = zoom;
+    result.mapUrl = `https://www.openstreetmap.org/?mlat=${result.lat}&mlon=${result.lon}&zoom=${zoom}`;
+  }
+  return result;
+}
+
+function parseOverpassUri(uri) {
+  const query = uri.replace('overpass://', '');
+  return {
+    query,
+    apiUrl: `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`,
+  };
+}
+
+function parseWikipediaUri(uri) {
+  const rest = uri.replace('wikipedia://', '');
+  const slash = rest.indexOf('/');
+  let lang = null;
+  let article = rest;
+  if (slash !== -1) {
+    const maybeLang = rest.slice(0, slash);
+    if (maybeLang.length === 2) {
+      lang = maybeLang;
+      article = rest.slice(slash + 1);
+    }
+  }
+  const browseUrl = lang
+    ? `https://${lang}.wikipedia.org/wiki/${article}`
+    : `https://en.wikipedia.org/wiki/${article}`;
+  return { type: 'web', article, lang: lang || 'en', browseUrl };
+}
+
+function parseGithubUri(uri) {
+  const rest = uri.replace('github://', '');
+  const parts = rest.split('/');
+  const owner = parts[0] || '';
+  const repo = parts[1] || '';
+  const kind = parts.length >= 4 ? parts[2] : null;
+  const kindId = parts.length >= 4 ? parts[3] : null;
+  const label = kind ? `${owner}/${repo}/${kind}/${kindId}` : `${owner}/${repo}`;
+  let browseUrl = `https://github.com/${owner}/${repo}`;
+  if (kind) browseUrl += `/${kind}/${kindId}`;
+  return { type: 'web', platform: 'github', owner, repo, kind, id: kindId, label, browseUrl };
+}
+
 const URI_PARSERS = {
   https: parseWebUri,
   http: parseWebUri,
@@ -188,6 +280,11 @@ const URI_PARSERS = {
   yt: parseYtUri,
   youtube: parseYtUri,
   file: parseFileUri,
+  osm: parseOsmUri,
+  geo: parseGeoUri,
+  overpass: parseOverpassUri,
+  wikipedia: parseWikipediaUri,
+  github: parseGithubUri,
 };
 
 // ── Q3N Entry class ───────────────────────────────────────────────────
@@ -256,6 +353,18 @@ class Q3NEntry {
         break;
       case 'yt': case 'youtube':
         return `— YouTube`;
+      case 'osm':
+        return `— OpenStreetMap ${meta.type || 'feature'}`;
+      case 'geo':
+        return meta.lat !== undefined ? `— ${meta.lat},${meta.lon}` : `— Geo coordinates`;
+      case 'overpass':
+        return `— Overpass API`;
+      case 'wikipedia': {
+        const article = (meta.article || '').replace(/_/g, ' ');
+        return `— Wikipedia (${(meta.lang || 'en').toUpperCase()}): ${article}`;
+      }
+      case 'github':
+        return `— GitHub: ${meta.label || `${meta.owner}/${meta.repo}`}`;
     }
     return `— ${this.uri}`;
   }

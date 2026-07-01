@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Python 3.8+
+- Python 3.9+
 - PySide6 6.5+ (for GUI)
 - setuptools (for pip install)
 
@@ -42,23 +42,20 @@ The package installs to `/usr/bin/q3n` and `/usr/bin/q3n-gui` with Python packag
 
 ## AppImage
 
-Two approaches:
-
-### Option A: pyside6-deploy (Nuitka-based)
+Uses PyInstaller with a preconfigured spec file.
 
 ```bash
-pip install pyside6-deploy
-pyside6-deploy gui/__main__.py --name Q3N-Manager
+# Install PyInstaller
+pip install pyinstaller
+
+# Build the AppImage
+bash scripts/build-appimage.sh <version>
 ```
 
-### Option B: pyproject-appimage
-
-```bash
-pip install pyproject-appimage
-pyproject-appimage build
-```
-
-Both produce a standalone executable in `dist/`.
+The spec file at `scripts/q3n.spec` freezes the GUI app along with the `core/`,
+`gui/`, `app/`, `art/`, and `examples/` directories. The build script assembles
+an AppDir and packages it with `appimagetool`, producing a standalone executable
+in `build/q3n-<version>.AppImage`.
 
 ## Verifying
 

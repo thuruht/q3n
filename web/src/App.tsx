@@ -296,7 +296,7 @@ No tag is fine too.
           <p className="format__desc">
             One block per quotation. Open with <code>/// &lt;uri&gt;</code>, close with{" "}
             <code>\\\</code>. Supported schemes:{" "}
-            <code>https · isbn · doi · arxiv · pubmed · orcid · spotify · yt · file · q3n · osm · geo · overpass</code>.{" "}
+            <code>https · isbn · doi · arxiv · pubmed · orcid · spotify · yt · file · q3n · osm · geo · overpass · wikipedia · github</code>.{" "}
             <a href={RAW_SPEC}>Full specification ↗</a>
           </p>
         </section>

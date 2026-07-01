@@ -9,7 +9,7 @@ setup(
     author='Q3N Project',
     url='https://github.com/thuruht/q3n',
     license='AGPL-3.0-only',
-    packages=find_packages(include=['core', 'core.*', 'gui', 'gui.*']),
+    packages=find_packages(),
     package_data={'gui': ['*.qss']},
     python_requires='>=3.9',
     install_requires=[

@@ -11,6 +11,8 @@ SCHEME_ICONS = {
     'pubmed': '🔬', 'orcid': '👤', 'spotify': '🎵',
     'q3n': '👤', 'yt': '🎬', 'youtube': '🎬',
     'osm': '🗺️', 'geo': '🗺️', 'overpass': '🗺️',
+    'wikipedia': '📖',
+    'github': '🐙',
 }
 
 CATEGORY_COLORS = {
@@ -143,10 +145,16 @@ class EntryDetailView(QWidget):
     def show_entry(self, row, entry):
         self._row = row
         self._entry = entry
-        self._dirty = False
+        self._uri_input.blockSignals(True)
+        self._tag_input.blockSignals(True)
+        self._quote_input.blockSignals(True)
         self._uri_input.setText(entry.uri)
         self._tag_input.setText(entry.tag or '')
         self._quote_input.setPlainText(entry.quote)
+        self._uri_input.blockSignals(False)
+        self._tag_input.blockSignals(False)
+        self._quote_input.blockSignals(False)
+        self._dirty = False
         self._scheme_value.setText(entry.scheme)
         self._update_validation()
         icon = SCHEME_ICONS.get(entry.scheme, '🔗')

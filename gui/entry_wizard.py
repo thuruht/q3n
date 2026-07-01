@@ -16,6 +16,8 @@ SOURCE_TYPES = {
     "Map Location (OSM)": ("osm", "osm://"),
     "Geographic Coordinates": ("geo", "geo:"),
     "Overpass Query": ("overpass", "overpass://"),
+    "Wikipedia Article": ("wikipedia", "wikipedia://"),
+    "GitHub Repository": ("github", "github://"),
     "Custom URI": ("custom", ""),
 }
 
@@ -111,6 +113,8 @@ class SourceDetailsPage(QWizardPage):
             "osm": "Enter OpenStreetMap object type and ID.\nosm://node/12345  or  osm://way/67890  or  osm://relation/999",
             "geo": "Enter latitude and longitude (optional zoom).\ngeo:51.5074,-0.1278  or  geo:48.8566,2.3522?z=15",
             "overpass": "Enter an Overpass API query.\noverpass://node[amenity=cafe](51.4,0.0,51.6,0.2)",
+            "wikipedia": "Enter Wikipedia article title.\nwikipedia://Article_Title  or  wikipedia://en/Article_Title",
+            "github": "Enter GitHub repository.\ngithub://user/repo  or  github://user/repo/issues/123",
             "custom": "Enter any custom URI.",
         }
         self._help_label.setText(help_texts.get(scheme, "Enter the source URI."))

@@ -99,6 +99,24 @@ def test_file_empty_path():
     assert 'path' in errs[0]
 
 
+def test_wikipedia_valid():
+    assert validate_uri('wikipedia://Quantum_mechanics') == []
+    assert validate_uri('wikipedia://fr/Paris') == []
+
+def test_wikipedia_empty():
+    errs = validate_uri('wikipedia://')
+    assert len(errs) == 1
+    assert 'article' in errs[0]
+
+def test_github_valid():
+    assert validate_uri('github://torvalds/linux') == []
+    assert validate_uri('github://user/repo/issues/123') == []
+
+def test_github_invalid():
+    errs = validate_uri('github://')
+    assert len(errs) == 1
+
+
 # unknown scheme passes through
 def test_unknown_scheme_passes():
     assert validate_uri('pubmed://12345678') == []

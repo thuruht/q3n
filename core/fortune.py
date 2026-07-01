@@ -89,6 +89,10 @@ def pick_art(entry=None, specific=None):
             return ASCII_ART["book"]
         if scheme in ('doi', 'arxiv', 'pubmed') and random.random() > 0.5:
             return ASCII_ART["brain"]
+        if scheme == 'wikipedia' and random.random() > 0.5:
+            return ASCII_ART["book"]
+        if scheme == 'github' and random.random() > 0.5:
+            return ASCII_ART["computer"]
         if scheme in ('yt', 'youtube', 'spotify') and random.random() > 0.5:
             return ASCII_ART["computer"]
     return random.choice(list(ASCII_ART.values()))

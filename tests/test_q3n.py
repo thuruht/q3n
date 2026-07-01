@@ -212,7 +212,48 @@ def test_parse_spotify_uri_album():
 def test_parse_spotify_uri_bare():
     meta = URI_PARSERS['spotify']('spotify://4cOdK2wGLETKBW3PvgPWqT')
     assert meta['id'] == '4cOdK2wGLETKBW3PvgPWqT'
-    assert 'kind' not in meta
+
+
+def test_parse_wikipedia_uri():
+    meta = URI_PARSERS['wikipedia']('wikipedia://Quantum_mechanics')
+    assert meta['type'] == 'web'
+    assert meta['article'] == 'Quantum_mechanics'
+    assert meta['lang'] == 'en'
+    assert 'en.wikipedia.org' in meta['browse_url']
+
+
+def test_parse_wikipedia_uri_with_lang():
+    meta = URI_PARSERS['wikipedia']('wikipedia://fr/Paris')
+    assert meta['article'] == 'Paris'
+    assert meta['lang'] == 'fr'
+    assert 'fr.wikipedia.org' in meta['browse_url']
+
+
+def test_parse_github_uri():
+    meta = URI_PARSERS['github']('github://torvalds/linux')
+    assert meta['type'] == 'web'
+    assert meta['platform'] == 'github'
+    assert meta['owner'] == 'torvalds'
+    assert meta['repo'] == 'linux'
+    assert meta['kind'] is None
+    assert 'github.com/torvalds/linux' in meta['browse_url']
+
+
+def test_parse_github_uri_with_kind():
+    meta = URI_PARSERS['github']('github://user/repo/issues/123')
+    assert meta['owner'] == 'user'
+    assert meta['repo'] == 'repo'
+    assert meta['kind'] == 'issues'
+    assert meta['id'] == '123'
+    assert 'issues/123' in meta['browse_url']
+
+
+def test_resolve_uri_github():
+    uri_data = {'scheme': 'github', 'uri': 'github://torvalds/linux',
+                'meta': {'label': 'torvalds/linux', 'owner': 'torvalds', 'repo': 'linux'}}
+    result = resolve_uri(uri_data)
+    assert 'GitHub' in result
+    assert 'torvalds/linux' in result
 
 
 # ── Resolve URI (attribution) ──────────────────────────────────────────
@@ -257,6 +298,14 @@ def test_resolve_uri_spotify():
     assert 'track' in result
 
 
+def test_resolve_uri_wikipedia():
+    uri_data = {'scheme': 'wikipedia', 'uri': 'wikipedia://Quantum_mechanics',
+                'meta': {'article': 'Quantum_mechanics', 'lang': 'en'}}
+    result = resolve_uri(uri_data)
+    assert 'Wikipedia' in result
+    assert 'Quantum mechanics' in result
+
+
 # ── Scheme registry ────────────────────────────────────────────────────
 
 
@@ -264,6 +313,8 @@ def test_scheme_registry_new_schemes():
     assert SCHEME_REGISTRY['pubmed'] == 'academic'
     assert SCHEME_REGISTRY['orcid'] == 'person'
     assert SCHEME_REGISTRY['spotify'] == 'media'
+    assert SCHEME_REGISTRY['wikipedia'] == 'web'
+    assert SCHEME_REGISTRY['github'] == 'web'
 
 
 def test_entry_category_pubmed():

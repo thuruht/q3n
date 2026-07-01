@@ -1,4 +1,4 @@
-# Q3N Specification (v1.1.3)
+# Q3N Specification (v1.1.4)
 
 This document provides the formal specification for the Quote Triple-Slash Notation (Q3N) format.
 
@@ -28,6 +28,8 @@ newline     = "\n" | "\r\n" ;
 
 The closing delimiter is `\\\` on its own line (matched by `^\\\\\\[ \t]*$`).
 
+Note: Inline `\\\` closing is also permitted at the end of a quote line. When a line ends with `\\\`, it terminates the entry without requiring a separate closing line.
+
 ## URI Schemes
 
 | Scheme       | Format Example                                    | Use Case                   |
@@ -46,6 +48,8 @@ The closing delimiter is `\\\` on its own line (matched by `^\\\\\\[ \t]*$`).
 | `osm://`     | `osm://node/123456` or `osm://way/654321`        | OpenStreetMap features     |
 | `geo:`       | `geo:51.5074,-0.1278?z=13`                       | Geographic coordinates     |
 | `overpass://`| `overpass://amenity=cafe`                        | Overpass API queries       |
+| `wikipedia://`| `wikipedia://Quantum_mechanics` or `wikipedia://fr/Paris` | Wikipedia articles  |
+| `github://`  | `github://user/repo` or `github://user/repo/issues/123` | GitHub repositories |
 
 ### Scheme-specific payload formats
 
@@ -66,6 +70,10 @@ The closing delimiter is `\\\` on its own line (matched by `^\\\\\\[ \t]*$`).
 **`geo:`** — Geographic coordinates (RFC 5870, colon-only syntax, no `//`): `geo:<lat>,<lon>[?z=<zoom>]`
 
 **`overpass://`** — Overpass QL query string: `overpass://<query>`
+
+**`wikipedia://`** — Wikipedia article: `wikipedia://Article_Title` or `wikipedia://lang/Article_Title` (lang is a 2-letter code, default `en`)
+
+**`github://`** — GitHub repository or resource: `github://owner/repo` or `github://owner/repo/issues/123`
 
 ## Tags
 
@@ -94,5 +102,6 @@ A file is recognised as Q3N if any of:
 ## Version History
 
 - v1.0: Initial specification
-- v1.1: Added `pubmed://`, `spotify://`, `orcid://` schemes; formalised tag syntax
-- v1.1.3: Added `osm://`, `geo:`, `overpass://` schemes; clarified `geo:` colon-only syntax
+- v1.1.0: Added `pubmed://`, `spotify://`, `orcid://`, `osm://`, `geo:`, `overpass://` schemes; formalised tag syntax
+- v1.1.3: Clarified `geo:` colon-only syntax
+- v1.1.4: Added `wikipedia://`, `github://` schemes; inline `\\\` closing; Anki export format

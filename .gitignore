@@ -49,7 +49,7 @@ venv/
 .pytest_cache/
 *.AppImage
 scripts/AppDir/usr/
-scripts/AppDir/q3n.png
+# scripts/AppDir/q3n.png is tracked — build dependency for debian/rules
 scripts/appimagetool-x86_64.AppImage
 .pybuild/
 debian/debhelper-build-stamp

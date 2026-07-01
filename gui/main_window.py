@@ -167,6 +167,8 @@ SCHEME_DISPLAY_ICONS = {
     'isbn': '📚', 'doi': '📖', 'arxiv': '📋',
     'pubmed': '🔬', 'orcid': '👤', 'spotify': '🎵',
     'q3n': '👤', 'yt': '🎬', 'youtube': '🎬',
+    'wikipedia': '📖',
+    'github': '🐙',
 }
 
 
@@ -353,6 +355,10 @@ class MainWindow(QMainWindow):
         tools_menu.addSeparator()
         self._add_action(tools_menu, "Validate URIs...", None, self._validate_file)
 
+        view_menu = menubar.addMenu("&View")
+        self._view_menu = view_menu
+        self._view_menu.setEnabled(False)
+
         help_menu = menubar.addMenu("&Help")
         self._add_action(help_menu, "&About Q3N Manager", None, self._show_about)
         self._add_action(help_menu, "About &Qt", None, QApplication.aboutQt)
@@ -527,8 +533,8 @@ class MainWindow(QMainWindow):
             self.setWindowTitle(f"Q3N Manager - {self._file_path.name}")
             self._status.showMessage(f"Opened {path}")
             self._persist_last_file(self._file_path)
-        except Exception:
-            pass
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to open file:\n{e}")
 
     def _confirm_save(self):
         if not self._modified:
@@ -704,6 +710,8 @@ class MainWindow(QMainWindow):
         dock.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
         self.addDockWidget(Qt.RightDockWidgetArea, dock)
         self._plugin_dock = dock
+        self._view_menu.setEnabled(True)
+        self._view_menu.addAction(dock.toggleViewAction())
 
     def _notify_plugins(self, entries):
         for widget in self._plugin_panels.values():

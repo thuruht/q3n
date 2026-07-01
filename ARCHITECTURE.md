@@ -15,7 +15,6 @@ gui/               PySide6 GUI application
   main_window.py    MainWindow — file ops, menus, plugin dock, URI validation
   entry_model.py    EntryListModel (QAbstractListModel)
   entry_view.py     EntryDetailView — edit panel with inline URI validation
-  entry_dialog.py   EntryDialog (quick add/edit)
   entry_wizard.py   EntryWizard (multi-page new-entry wizard)
   __init__.py
 app/               Plugin framework and standalone plugins
@@ -117,6 +116,8 @@ URI parsing is scheme-dispatched via `URI_PARSERS` dict. Each scheme returns a `
 | `osm` | `type`, `id`, `browse_url`, `api_url` |
 | `geo` | `lat`, `lon`, `zoom`, `map_url` |
 | `overpass` | `query`, `api_url` |
+| `wikipedia` | `article`, `lang`, `browse_url` |
+| `github` | `owner`, `repo`, `kind`, `id`, `label`, `browse_url` |
 
 ### Detection & discovery
 
@@ -131,7 +132,7 @@ Argparse-based dispatcher. Each subcommand is a `cmd_*` function returning an ex
 Color/icon output is gated on `sys.stdout.isatty()`. ASCII banner shown on bare invocation.
 
 Subcommands: `show`, `list`, `create`, `edit`, `search`, `stats`, `export`, `import`,
-`index`, `init`, `fortune`, `validate`, `cite`, `run`, `tutorial`, `help`
+`index`, `init`, `fortune`, `validate`, `cite`, `run`, `config`, `tutorial`, `help`
 
 - `validate FILE` — per-entry URI validation, exits 1 if any fail
 - `cite FILE [--style mla|apa|chicago|bibtex] [--entry N] [--all]` — citation formatting
@@ -170,6 +171,11 @@ Each plugin module must export `PLUGIN_META` (dict) and `register(manager)`.
 - `CitePanelWidget` — style picker + entry list + citation text box + clipboard copy
 - `format_citation(entry, style)` — MLA 9, APA 7, Chicago 17, BibTeX
 - Standalone: `q3n run cite FILE [--style ...] [--entry N] [--all]`
+
+**anki** (`app/plugins/anki/`):
+- `export_anki_csv(entries)` — CSV with columns Quote, Source, Tag, URI
+- Standalone: `q3n run anki FILE [-o output.csv]`
+- Also registered as `anki` export format in `export_file()` and `q3n export -f anki`
 
 ## GUI (`gui/`)
 
@@ -228,12 +234,12 @@ Parallel JS port with identical format semantics. Works in Node.js and browser (
 
 ```js
 Q3NParser.parse(text)          // → [{uri, scheme, path, quote, tag, meta}, ...]
-Q3NParser.toJSON(entries, indent)
-Q3NParser.toMarkdown(entries)
-Q3NParser.toFortune(entries)
+Q3NParser.exportJson(entries, indent)
+Q3NParser.exportMarkdown(entries)
+Q3NParser.exportFortune(entries)
 ```
 
-Supports all URI schemes including `pubmed`, `orcid`, `spotify`, `osm`, `geo`, `overpass`.
+Supports all URI schemes including `pubmed`, `orcid`, `spotify`, `osm`, `geo`, `overpass`, `wikipedia`, `github`.
 
 ## Debian packaging
 

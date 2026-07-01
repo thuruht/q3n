@@ -45,7 +45,7 @@ The entire format engine lives here — no GUI dependencies. Key types and funct
 - **`Q3NEntry(uri, scheme, path, quote, tag=None)`** — the data object for one block. `as_dict()` adds derived metadata (`meta`, `category`, `content_type`). `validate()` delegates to `validate_uri(self.uri)`.
 - **`parse(text) → list[Q3NEntry]`** — line-by-line parser; entries without a closing `\\\` are silently dropped. Parser is non-strict — invalid URIs still parse.
 - **`serialize(entries, header=True) → str`** — inverse of `parse`; `parse(serialize(entries))` is a guaranteed roundtrip.
-- **`export_file(entries, path, fmt)`** — dispatcher for all export formats (`q3n`, `json`, `md`, `html`, `txt`, `index`, `fortune`).
+- **`export_file(entries, path, fmt)`** — dispatcher for all export formats (`q3n`, `json`, `md`, `html`, `txt`, `index`, `fortune`, `anki`).
 - **`validate_uri(uri) → list[str]`** — per-scheme validation; empty list means valid. Checks https/http host, ISBN checksum, DOI format, arXiv ID, YouTube video ID length, q3n/file path presence. Unknown schemes pass through.
 - **`detect(path) → bool`** — identifies Q3N files by extension first, then content (capped at 1MB). Used for single-file detection.
 - **`list_entries(directory)`** — recursively discovers Q3N files by extension only (fast; no content scanning of unrecognized files).
@@ -65,6 +65,7 @@ Subcommands: `show`, `list`, `create`, `edit`, `search`, `stats`, `export`, `imp
 Plugins live under `app/plugins/` and export `PLUGIN_META` (dict) and `register(manager)`:
 - `app/plugins/fortune/` — `FortunePanelWidget` (sidebar card), `FortuneOverlay` (floating widget)
 - `app/plugins/cite/` — `CitePanelWidget` (sidebar tab), `format_citation(entry, style)` (MLA/APA/Chicago/BibTeX)
+- `app/plugins/anki/` — `export_anki_csv(entries)` (Anki-compatible CSV); standalone via `q3n run anki`
 
 Installed to `/usr/lib/q3n/` by the Debian package.
 
@@ -122,3 +123,112 @@ Tests live in `tests/` and import directly from `core/` and `app/` (no mocking, 
 ## CI
 
 GitHub Actions runs on Python 3.9–3.12: flake8 lint → pytest → CLI smoke test → shell script syntax check → Debian package build. A separate job validates the VS Code extension JSON and runs the JS parser tests with Node 20.
+
+## Code review checklist — read this before every change
+
+These are anti-patterns discovered in a project-wide audit. Check each before committing.
+
+### Scheme tables must stay in sync
+
+Scheme data lives in **5 locations** — adding or removing a scheme requires touching all:
+- `core/q3n.py` — `SCHEME_REGISTRY` + `URI_PARSERS`
+- `tools/q3n` — `SCHEME_COLORS` + `SCHEME_ICONS` + wizard scheme list + URI help text
+- `gui/entry_view.py` — `SCHEME_ICONS`
+- `gui/main_window.py` — `SCHEME_DISPLAY_ICONS`
+- Missing schemes cause silent failures (missing badge, missing icon, wrong color)
+
+If you add a scheme, grep for `SCHEME_ICONS`, `SCHEME_COLORS`, `SCHEME_DISPLAY_ICONS`, `SCHEME_REGISTRY`, and `URI_PARSERS` to find every location.
+
+### CLI `cmd_*` must handle every argparse choice
+
+If `add_argument('--format', choices=['a','b','c','d'])` lists N choices, the handler must implement all N. The most common bug is adding a choice but forgetting the handler — argparse accepts it silently, then the user gets `"Unknown format"` at runtime.
+
+**Rule:** When adding an argparse `choices` value, write the handler case first, then add the choice. Better yet, delegate to `core.q3n.export_file()` which handles all formats automatically.
+
+### Qt dirty-flag pattern
+
+```python
+# WRONG — setText triggers textChanged → _mark_dirty sets _dirty = True
+self._dirty = False
+self._uri_input.setText(entry.uri)
+
+# RIGHT — block signals during population
+self._uri_input.blockSignals(True)
+self._uri_input.setText(entry.uri)
+self._uri_input.blockSignals(False)
+self._dirty = False
+```
+
+### Never `except Exception: pass`
+
+Bare `except Exception: pass` hides `KeyboardInterrupt`, `MemoryError`, and genuine bugs. Always narrow to expected exception types:
+
+```python
+# WRONG
+except Exception:
+    pass
+
+# RIGHT
+except (OSError, ValueError):
+    pass
+```
+
+Exception: `open_path` in `gui/` may legitimately catch broad exceptions, but must show an error dialog (not silent pass).
+
+### Export dispatch must not duplicate core logic
+
+`cmd_export` in `tools/q3n` should call `core.q3n.export_file()`. Do not write your own if/elif chain — it will inevitably miss formats that `export_file` already handles.
+
+### JS and Python must stay in parity
+
+The JS parser (`src/js/q3n-parser.js`) should support every URI scheme the Python parser does. Currently the JS parser is missing `osm://`, `geo:`, `overpass://`. Before claiming JS supports a scheme in docs, implement it.
+
+There are **two identical copies** of the JS parser: `src/js/q3n-parser.js` and `web/public/q3n-parser.js`. Fix both, or symlink one to the other.
+
+### `setup.py` must include all packages
+
+`find_packages()` includes subdirectories with `__init__.py`. If you exclude `app/`, users who `pip install q3n` get no plugins — `q3n run` and `q3n cite` silently break. When adding a new Python package directory, check `setup.py` includes it.
+
+### `ConfigParser` always needs `interpolation=None`
+
+```python
+# WRONG — % in config values crashes with InterpolationError
+cfg = configparser.ConfigParser()
+
+# RIGHT
+cfg = configparser.ConfigParser(interpolation=None)
+```
+
+### Build dependencies must be tracked in git
+
+If a file is in `.gitignore` and also referenced by `debian/rules` or a build script, the build breaks on a fresh clone. Before referencing a file in packaging, `git add` it first.
+
+### Dead code must be removed
+
+If you write a class or function and don't import it anywhere (e.g. `gui/entry_dialog.py`), remove it. Dead code is not harmless — it wastes reader attention and can become stale reference for AI agents that assume it's in use.
+
+### Every file in a list of values must be real
+
+When you document "7 export formats" or "14 URI schemes", every item in that list must exist in the code. If you write documentation for a feature that doesn't exist yet, you create a documentation-integrity debt that will be found later.
+
+### Version numbers must be bumped everywhere
+
+When bumping `__version__` in `core/__init__.py`:
+- `docs/man/q3n.1` — header `.TH` line
+- `docs/format/specification.md` — title line
+- `q3n.appdata.xml` — `<release>` element
+- `debian/changelog` — new entry
+- Git tag — `vX.Y.Z`
+- Search for any other file mentioning the old version string
+
+### Man page must list all options
+
+When adding an argparse flag (e.g. `--count` to `fortune`), add it to `docs/man/q3n.1` in the same commit. The man page is the canonical reference for installed users who don't have `--help`.
+
+### CI scope must match documented scope
+
+If `CLAUDE.md` says CI lints `app/plugins/` and `gui/`, the CI workflow must actually lint those directories. Out-of-date docs cause blind spots where CI misses problems in those directories.
+
+### CLI `help` subcommand must not be a no-op
+
+If `q3n help <subcommand>` exists, it should show help for that subcommand — not silently fall through to the generic listing. Either implement per-command dispatch or remove the `<command_name>` argument.

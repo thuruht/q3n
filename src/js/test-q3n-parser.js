@@ -189,6 +189,39 @@ test('SCHEME_CATEGORIES includes new schemes', () => {
   assert.strictEqual(Q3NParser.SCHEME_CATEGORIES.pubmed, 'academic');
   assert.strictEqual(Q3NParser.SCHEME_CATEGORIES.orcid, 'person');
   assert.strictEqual(Q3NParser.SCHEME_CATEGORIES.spotify, 'media');
+  assert.strictEqual(Q3NParser.SCHEME_CATEGORIES.wikipedia, 'web');
+  assert.strictEqual(Q3NParser.SCHEME_CATEGORIES.github, 'web');
+});
+
+test('parse wikipedia URI', () => {
+  const meta = Q3NParser.URI_PARSERS.wikipedia('wikipedia://Quantum_mechanics');
+  assert.strictEqual(meta.article, 'Quantum_mechanics');
+  assert.strictEqual(meta.lang, 'en');
+  assert.ok(meta.browseUrl.includes('en.wikipedia.org'));
+});
+
+test('parse wikipedia URI with language', () => {
+  const meta = Q3NParser.URI_PARSERS.wikipedia('wikipedia://fr/Paris');
+  assert.strictEqual(meta.article, 'Paris');
+  assert.strictEqual(meta.lang, 'fr');
+  assert.ok(meta.browseUrl.includes('fr.wikipedia.org'));
+});
+
+test('parse github URI', () => {
+  const meta = Q3NParser.URI_PARSERS.github('github://torvalds/linux');
+  assert.strictEqual(meta.owner, 'torvalds');
+  assert.strictEqual(meta.repo, 'linux');
+  assert.strictEqual(meta.kind, null);
+  assert.ok(meta.browseUrl.includes('github.com/torvalds/linux'));
+});
+
+test('parse github URI with kind', () => {
+  const meta = Q3NParser.URI_PARSERS.github('github://user/repo/issues/123');
+  assert.strictEqual(meta.owner, 'user');
+  assert.strictEqual(meta.repo, 'repo');
+  assert.strictEqual(meta.kind, 'issues');
+  assert.strictEqual(meta.id, '123');
+  assert.ok(meta.browseUrl.includes('issues/123'));
 });
 
 test('parse inline \\\\\\  variant', () => {

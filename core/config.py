@@ -43,7 +43,7 @@ def get_config():
 
 
 def _load():
-    cfg = configparser.ConfigParser()
+    cfg = configparser.ConfigParser(interpolation=None)
     cfg['core'] = {
         'scan_max_bytes': '10485760',
         'default_export_format': 'q3n',
