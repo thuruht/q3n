@@ -7,6 +7,7 @@ gui/main_window.py usr/lib/python3/dist-packages/gui/
 gui/entry_model.py usr/lib/python3/dist-packages/gui/
 gui/entry_view.py usr/lib/python3/dist-packages/gui/
 gui/entry_wizard.py usr/lib/python3/dist-packages/gui/
+gui/q3n_scriptorium.qss usr/lib/python3/dist-packages/gui/
 tools/q3n usr/bin/
 bin/q3n-gui usr/bin/
 q3n.desktop usr/share/applications/

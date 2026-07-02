@@ -32,7 +32,7 @@ app/               Plugin framework and standalone plugins
       formatter.py     format_citation(entry, style) — MLA/APA/Chicago/BibTeX
 src/js/            JavaScript implementation
   q3n-parser.js     Browser + Node.js parser (window.Q3NParser)
-  test-q3n-parser.js JS test suite (31 tests)
+  test-q3n-parser.js JS test suite (35 tests)
 web/               Cloudflare Worker download site (Vite + React)
   public/demo.html  Interactive browser demo
   public/q3n-parser.js  JS parser for browser use
@@ -173,6 +173,7 @@ Each plugin module must export `PLUGIN_META` (dict) and `register(manager)`.
 - Standalone: `q3n run cite FILE [--style ...] [--entry N] [--all]`
 
 **anki** (`app/plugins/anki/`):
+- `AnkiPanelWidget` — sidebar tab; CSV preview + "Export CSV..." button
 - `export_anki_csv(entries)` — CSV with columns Quote, Source, Tag, URI
 - Standalone: `q3n run anki FILE [-o output.csv]`
 - Also registered as `anki` export format in `export_file()` and `q3n export -f anki`

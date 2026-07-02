@@ -1,0 +1,31 @@
+when:
+  - event: push
+    branch: main
+  - event: pull_request
+
+matrix:
+  PYTHON_VERSION:
+    - "3.9"
+    - "3.10"
+    - "3.11"
+    - "3.12"
+
+steps:
+  - name: lint-and-test
+    image: python:${PYTHON_VERSION}
+    commands:
+      - pip install --quiet flake8 pytest
+      - flake8 core/ tools/ tests/ app/plugins/ gui/ --count --select=E9,F63,F7,F82 --show-source --statistics
+      - flake8 core/ tools/ tests/ app/plugins/ gui/ --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
+      - pytest tests/ -v --tb=short
+
+  - name: cli-smoke
+    image: python:${PYTHON_VERSION}
+    commands:
+      - python tools/q3n --help
+      - python tools/q3n fortune --help
+
+  - name: shell-check
+    image: python:${PYTHON_VERSION}
+    commands:
+      - bash -n scripts/fortune-q3n.sh && bash -n scripts/q3n-strfile.sh && echo "Shell scripts syntax OK"

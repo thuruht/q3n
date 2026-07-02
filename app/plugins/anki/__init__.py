@@ -2,11 +2,13 @@ PLUGIN_META = {
     'name': 'anki',
     'title': 'Anki',
     'description': 'Export Q3N entries as Anki-compatible CSV for flashcard import.',
-    'version': '1.0.0',
+    'version': '1.1.0',
 }
 
 
 def register(manager):
+    from .panel import AnkiPanelWidget
+    manager.register_panel('anki', AnkiPanelWidget)
     manager.register_standalone('anki', _run_standalone)
 
 

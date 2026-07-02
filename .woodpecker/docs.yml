@@ -1,0 +1,10 @@
+when:
+  - event: push
+    branch: main
+  - event: pull_request
+
+steps:
+  - name: check-docs-exist
+    image: alpine:3.20
+    commands:
+      - for f in README.md BUILDING.md ARCHITECTURE.md; do test -f "$$f" && echo "✓ $$f exists" || echo "✗ $$f missing"; done

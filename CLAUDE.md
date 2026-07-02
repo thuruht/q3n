@@ -65,7 +65,7 @@ Subcommands: `show`, `list`, `create`, `edit`, `search`, `stats`, `export`, `imp
 Plugins live under `app/plugins/` and export `PLUGIN_META` (dict) and `register(manager)`:
 - `app/plugins/fortune/` — `FortunePanelWidget` (sidebar card), `FortuneOverlay` (floating widget)
 - `app/plugins/cite/` — `CitePanelWidget` (sidebar tab), `format_citation(entry, style)` (MLA/APA/Chicago/BibTeX)
-- `app/plugins/anki/` — `export_anki_csv(entries)` (Anki-compatible CSV); standalone via `q3n run anki`
+- `app/plugins/anki/` — `AnkiPanelWidget` (sidebar tab), `export_anki_csv(entries)` (Anki-compatible CSV); standalone via `q3n run anki`
 
 Installed to `/usr/lib/q3n/` by the Debian package.
 
@@ -122,7 +122,7 @@ Tests live in `tests/` and import directly from `core/` and `app/` (no mocking, 
 
 ## CI
 
-GitHub Actions runs on Python 3.9–3.12: flake8 lint → pytest → CLI smoke test → shell script syntax check → Debian package build. A separate job validates the VS Code extension JSON and runs the JS parser tests with Node 20.
+Woodpecker CI runs on Python 3.9–3.12: flake8 lint → pytest → CLI smoke test → shell script syntax check. Separate pipelines for JS parser tests (Node 20), docs existence check, and VS Code extension JSON validation. Config: `.woodpecker/*.yml`.
 
 ## Code review checklist — read this before every change
 
@@ -227,7 +227,7 @@ When adding an argparse flag (e.g. `--count` to `fortune`), add it to `docs/man/
 
 ### CI scope must match documented scope
 
-If `CLAUDE.md` says CI lints `app/plugins/` and `gui/`, the CI workflow must actually lint those directories. Out-of-date docs cause blind spots where CI misses problems in those directories.
+If `CLAUDE.md` says CI lints `app/plugins/` and `gui/`, the Woodpecker config must actually lint those directories. Out-of-date docs cause blind spots where CI misses problems in those directories.
 
 ### CLI `help` subcommand must not be a no-op
 

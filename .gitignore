@@ -25,6 +25,9 @@ node_modules/
 npm-debug.log
 yarn-debug.log
 
+# Cloudflare Wrangler
+.wrangler/
+
 # Qt
 *.moc
 moc_*.cpp

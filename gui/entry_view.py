@@ -215,6 +215,11 @@ class EntryDetailView(QWidget):
             meta_parts.append(f'{meta["lat"]}, {meta["lon"]}{zoom}')
         if 'type' in meta and 'id' in meta and entry.scheme == 'osm':
             meta_parts.append(f'{meta["type"]}/{meta["id"]}')
+        if 'article' in meta and entry.scheme == 'wikipedia':
+            lang = meta.get('lang', 'en').upper()
+            meta_parts.append(f'Wikipedia ({lang}): {meta["article"].replace("_", " ")}')
+        if 'label' in meta and entry.scheme == 'github':
+            meta_parts.append(f'GitHub: {meta["label"]}')
         if 'query' in meta and entry.scheme == 'overpass':
             q = meta['query']
             meta_parts.append(f'query: {q[:50]}{"…" if len(q) > 50 else ""}')

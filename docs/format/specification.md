@@ -42,7 +42,7 @@ Note: Inline `\\\` closing is also permitted at the end of a quote line. When a 
 | `doi://`     | `doi://10.1234/abcd.567`                         | Academic papers            |
 | `arxiv://`   | `arxiv://2305.12345`                             | arXiv preprints            |
 | `pubmed://`  | `pubmed://12345678`                              | PubMed articles            |
-| `yt://`      | `yt://dQw4w9WgXcQ` or `yt://watch?v=ID&t=42`    | YouTube videos             |
+| `yt://`      | `yt://dQw4w9WgXcQ` or `yt://watch?v=ID&t=42`    | YouTube videos (`youtube://` is an alias) |
 | `spotify://` | `spotify://track:4cOdK2wGLETKBW3PvgPWqT`        | Music tracks               |
 | `orcid://`   | `orcid://0000-0002-1825-0097`                    | Researcher identifiers     |
 | `osm://`     | `osm://node/123456` or `osm://way/654321`        | OpenStreetMap features     |
@@ -57,7 +57,7 @@ Note: Inline `\\\` closing is also permitted at the end of a quote line. When a 
 
 **`q3n://`** — semicolon-separated fields: `q3n://handle:id;email@domain;'Full Name'`
 
-**`yt://`** — bare video ID or query string: `yt://VIDEO_ID` or `yt://VIDEO_ID?t=SECONDS`
+**`yt://`** — bare video ID or query string: `yt://VIDEO_ID` or `yt://VIDEO_ID?t=SECONDS` (`youtube://` is an alias)
 
 **`pubmed://`** — PubMed article ID (PMID): `pubmed://12345678`
 

@@ -1,0 +1,10 @@
+when:
+  - event: push
+    branch: main
+  - event: pull_request
+
+steps:
+  - name: validate-vscode-extension
+    image: python:3.12
+    commands:
+      - python -c "import json; json.load(open('vscode-extension/package.json')); print('VS Code extension JSON is valid')"

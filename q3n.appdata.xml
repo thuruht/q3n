@@ -19,7 +19,7 @@
       <li>Inline URI validation with per-scheme rules (ISBN checksum, DOI format, arXiv ID, etc.)</li>
       <li>Export to JSON, Markdown, HTML, Plain Text, Markdown Index, or Fortune format</li>
       <li>Plugin system: fortune cookie sidebar, citation formatter (MLA/APA/Chicago/BibTeX)</li>
-      <li>Supports 14 URI schemes: https, isbn, doi, arxiv, pubmed, yt, spotify, orcid, q3n, file, osm, geo, overpass</li>
+      <li>Supports 16 URI schemes: https, http, isbn, doi, arxiv, pubmed, yt, spotify, orcid, q3n, file, osm, geo, overpass, wikipedia, github</li>
     </ul>
   </description>
   <launchable type="desktop-id">q3n.desktop</launchable>

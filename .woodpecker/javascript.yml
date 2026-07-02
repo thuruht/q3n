@@ -1,0 +1,10 @@
+when:
+  - event: push
+    branch: main
+  - event: pull_request
+
+steps:
+  - name: js-parse-tests
+    image: node:20
+    commands:
+      - node src/js/test-q3n-parser.js

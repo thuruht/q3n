@@ -117,6 +117,14 @@ def test_github_invalid():
     assert len(errs) == 1
 
 
+# geo (colon-only syntax)
+def test_geo_valid():
+    assert validate_uri('geo:51.5,-0.1') == []
+
+def test_geo_with_zoom_valid():
+    assert validate_uri('geo:48.8566,2.3522?z=15') == []
+
+
 # unknown scheme passes through
 def test_unknown_scheme_passes():
     assert validate_uri('pubmed://12345678') == []

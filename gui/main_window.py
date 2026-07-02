@@ -171,6 +171,7 @@ SCHEME_DISPLAY_ICONS = {
     'isbn': '📚', 'doi': '📖', 'arxiv': '📋',
     'pubmed': '🔬', 'orcid': '👤', 'spotify': '🎵',
     'q3n': '👤', 'yt': '🎬', 'youtube': '🎬',
+    'osm': '🗺️', 'geo': '🗺️', 'overpass': '🗺️',
     'wikipedia': '📖',
     'github': '🐙',
 }
@@ -344,7 +345,7 @@ TUTORIAL_PAGES = [
      "multiple files at once</li>"
      "<li>Use <b>Import</b> to merge Q3N, JSON, or plain-text files into the current "
      "collection</li>"
-     "<li>The <b>Plugins</b> dock (right side) shows the Fortune and Cite panels — "
+     "<li>The <b>Plugins</b> dock (right side) shows the Fortune, Cite, and Anki panels — "
      "use the tag/scheme filters in Fortune to explore your collection</li>"
      "<li>Check <b>Tools → Statistics</b> for word counts, scheme breakdown, and tag "
      "frequency</li>"

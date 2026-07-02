@@ -311,10 +311,10 @@ def _isbn10_valid(digits: str) -> bool:
 def validate_uri(uri: str) -> list:
     """Return list of validation error strings. Empty list means valid."""
     errors = []
-    if '://' not in uri:
+    scheme, _ = parse_scheme(uri)
+    if not scheme:
         errors.append('missing URI scheme')
         return errors
-    scheme = uri.split('://')[0].lower()
 
     if scheme in ('https', 'http'):
         parsed = urlparse(uri)

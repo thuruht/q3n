@@ -1,25 +1,20 @@
-q3n (1.1.5-1) unstable; urgency=low
+q3n (1.1.5-2) unstable; urgency=low
 
-  * Add: wikipedia:// URI scheme (with optional language prefix)
-  * Add: github:// URI scheme (owner/repo, issues, PRs, commits)
-  * Add: Anki export plugin (app/plugins/anki/); q3n export -f anki
-  * Fix: GUI dirty-flag bug — blockSignals during show_entry() field population
-  * Fix: CLI cmd_export delegates to export_file() for all file-output formats
-  * Fix: JS parser now supports osm://, geo:, overpass:// schemes
-  * Fix: ConfigParser now uses interpolation=None (prevents % crash in config values)
-  * Fix: bare except Exception narrowed to specific types in core/q3n.py
-  * Fix: open_path in GUI now shows error dialog instead of silent pass
-  * Fix: View menu added with plugin dock toggle action
-  * Fix: setup.py uses find_packages() to include app/ and plugins
-  * Fix: q3n config --install falls back to sys.prefix for examples path
-  * Fix: debian/rules uses build/scripts-* glob (Python version-agnostic)
-  * Chore: entry_dialog.py deleted (dead code); debian/install updated
-  * Chore: CI now installs PySide6 and lints app/plugins/ and gui/
-  * Chore: web/public/q3n-parser.js is now a symlink to src/js/q3n-parser.js
-  * Docs: man page updated (all export formats, new schemes, fortune flags)
-  * Bump version to 1.1.5
+  * Add: Anki GUI panel widget — Anki now appears in the plugin dock
+  * Fix: validate_uri() no longer rejects geo: URIs (colon-only syntax)
+  * Fix: gui/main_window.py SCHEME_DISPLAY_ICONS — added missing osm/geo/overpass
+  * Fix: debian/install now includes gui/q3n_scriptorium.qss (Scriptorium theme)
+  * Fix: missing app/__init__.py, app/src/__init__.py, app/src/core/__init__.py
+  * Fix: q3n help brief listing missing fortune/validate/cite/run/config
+  * Fix: q3n tutorial missing wikipedia:// and github:// from scheme list
+  * Fix: man page — added --version to SYNOPSIS; removed dangling q3n(7) reference
+  * Fix: q3n.appdata.xml scheme count (16 schemes, listed http)
+  * Fix: spec/man page now documents youtube:// as yt:// alias
+  * Chore: migrated CI from GitHub Actions to Woodpecker (.woodpecker/*.yml)
+  * Chore: removed .github/ directory
+  * Bump package revision to 1.1.5-2
 
- -- Q3N Project <thuruht@users.noreply.github.com>  Mon, 30 Jun 2026 12:00:00 +0000
+ -- Q3N Project <thuruht@users.noreply.github.com>  Wed, 01 Jul 2026 12:00:00 +0000
 
 q3n (1.1.4-1) unstable; urgency=low
 

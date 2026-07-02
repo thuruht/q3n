@@ -1,6 +1,6 @@
 # Q3N Iteration Plan
 
-A living document for improving this project without regressions. Each iteration follows the same discipline: tests pass before and after, docs stay in sync, every push goes through CI.
+A living document for improving this project without regressions. Each iteration follows the same discipline: tests pass before and after, docs stay in sync, every push goes through Woodpecker CI.
 
 ---
 
@@ -94,7 +94,7 @@ Tasks:
 - [x] React download page: .deb, .tar.gz, .AppImage; full feature sections; interactive browser demo
 - [x] Deployed to https://q3n.distorted.work (CF Workers, custom domain)
 
-Note: CI auto-deploy via wrangler is not yet wired; deployments are currently manual.
+Note: CI auto-deploy via wrangler is not yet wired; deployments are currently manual. Woodpecker CI does not deploy — pr-dashboard/approval not wired.
 
 ---
 
